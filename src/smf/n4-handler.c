@@ -648,11 +648,8 @@ void smf_n4_handle_session_report_request(
         smf_sess_t *sess, ogs_pfcp_xact_t *pfcp_xact,
         ogs_pfcp_session_report_request_t *pfcp_req)
 {
-    smf_ue_t *smf_ue = NULL;
-#if 0
-    smf_bearer_t *bearer = NULL;
-    smf_tunnel_t *tunnel = NULL;
-#endif
+    smf_bearer_t *qos_flow = NULL;
+    ogs_pfcp_pdr_t *pdr = NULL;
 
     ogs_pfcp_report_type_t report_type;
     uint8_t cause_value = 0;
@@ -681,52 +678,81 @@ void smf_n4_handle_session_report_request(
     }
 
     ogs_assert(sess);
-    smf_ue = sess->smf_ue;
-    ogs_assert(smf_ue);
-
-#if 0
-    if (!smf_ue->gnode) {
-        ogs_error("No SGWC-UE GTP Node");
-        ogs_pfcp_send_error_message(pfcp_xact, sess ? sess->sgwu_sxa_seid : 0,
-                OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE,
-                OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND, 0);
-        return;
-    }
-#endif
-
-    smf_pfcp_send_session_report_response(
-            pfcp_xact, sess, OGS_PFCP_CAUSE_REQUEST_ACCEPTED);
-
-#if 0
     report_type.value = pfcp_req->report_type.u8;
 
     if (report_type.downlink_data_report) {
-        if (pfcp_req->downlink_data_report.presence == 0) {
-            ogs_error("No Downlink Data Report");
-            return;
-        }
+        ogs_pfcp_downlink_data_service_information_t *info = NULL;
+        uint8_t paging_policy_indication_value = 0;
+        uint8_t qfi = 0;
 
-        if (pfcp_req->downlink_data_report.pdr_id.presence == 0) {
-            ogs_error("No PDR-ID");
-            return;
-        }
+        if (pfcp_req->downlink_data_report.presence) {
+            if (pfcp_req->downlink_data_report.
+                    downlink_data_service_information.presence) {
+                info = pfcp_req->downlink_data_report.
+                    downlink_data_service_information.data;
+                if (info) {
+                    if (info->qfii && info->ppi) {
+                        paging_policy_indication_value =
+                            info->paging_policy_indication_value;
+                        qfi = info->qfi;
+                    } else if (info->qfii) {
+                        qfi = info->qfi;
+                    } else if (info->ppi) {
+                        paging_policy_indication_value =
+                            info->paging_policy_indication_value;
+                    } else {
+                        ogs_error("Invalid Downlink Data Service Information");
+                    }
 
-        pdr_id = pfcp_req->downlink_data_report.pdr_id.u16;
+                    if (paging_policy_indication_value) {
+                        ogs_warn("Not implement - "
+                                "Paging Policy Indication Value");
+                        ogs_pfcp_send_error_message(pfcp_xact, 0,
+                                OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE,
+                                OGS_GTP_CAUSE_SERVICE_NOT_SUPPORTED, 0);
+                        return;
+                    }
 
-        ogs_list_for_each(&sess->bearer_list, bearer) {
-            ogs_list_for_each(&bearer->tunnel_list, tunnel) {
-                ogs_assert(tunnel->pdr);
-                if (tunnel->pdr->id == pdr_id) {
-                    smf_gtp_send_downlink_data_notification(
-                        OGS_GTP_CAUSE_INVALID_VALUE, bearer);
-                    return;
+                    if (qfi) {
+                        qos_flow = smf_qos_flow_find_by_qfi(sess, qfi);
+                        if (!qos_flow)
+                            ogs_error("Cannot find the QoS Flow[%d]", qfi);
+                    }
+                } else {
+                    ogs_error("No Info");
                 }
             }
+
+            if (pfcp_req->downlink_data_report.pdr_id.presence) {
+                pdr = ogs_pfcp_pdr_find(&sess->pfcp,
+                    pfcp_req->downlink_data_report.pdr_id.u16);
+                if (!pdr)
+                    ogs_error("Cannot find the PDR-ID[%d]", pdr_id);
+
+            } else {
+                ogs_error("No PDR-ID");
+            }
+        } else {
+            ogs_error("No Downlink Data Report");
         }
 
-        ogs_error("Cannot find the PDR-ID[%d]", pdr_id);
+        if (!pdr || !qos_flow) {
+            ogs_error("No Context [%p:%p]", pdr, qos_flow);
+            ogs_pfcp_send_error_message(pfcp_xact, 0,
+                    OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE,
+                    cause_value, 0);
+        }
+
+        smf_pfcp_send_session_report_response(
+                pfcp_xact, sess, OGS_PFCP_CAUSE_REQUEST_ACCEPTED);
 
     } else if (report_type.error_indication_report) {
+        /* TODO */
+
+        smf_pfcp_send_session_report_response(
+                pfcp_xact, sess, OGS_PFCP_CAUSE_REQUEST_ACCEPTED);
+
+#if 0
         bearer = smf_bearer_find_by_error_indication_report(
                 sess, &pfcp_req->error_indication_report);
 
@@ -744,9 +770,11 @@ void smf_n4_handle_session_report_request(
                     OGS_PFCP_MODIFY_DL_ONLY|OGS_PFCP_MODIFY_DEACTIVATE|
                     OGS_PFCP_MODIFY_ERROR_INDICATION);
         }
+#endif
 
     } else {
         ogs_error("Not supported Report Type[%d]", report_type.value);
+        smf_pfcp_send_session_report_response(
+                pfcp_xact, sess, OGS_PFCP_CAUSE_SYSTEM_FAILURE);
     }
-#endif
 }

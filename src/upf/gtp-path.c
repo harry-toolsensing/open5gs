@@ -84,9 +84,8 @@ static void _gtpv1_tun_recv_cb(short when, ogs_socket_t fd, void *data)
             ogs_assert(sess);
 
             report.downlink_data.pdr_id = pdr->id;
-#if 0 /* Does we need QFI? */
-            report.downlink_data.qfi = pdr->qfi; /* for 5GC */
-#endif
+            if (pdr->qer && pdr->qer->qfi)
+                report.downlink_data.qfi = pdr->qer->qfi; /* for 5GC */
 
             upf_pfcp_send_session_report_request(sess, &report);
         }
