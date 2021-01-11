@@ -456,3 +456,26 @@ void smf_epc_pfcp_send_session_deletion_request(
     rv = ogs_pfcp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
 }
+
+void smf_pfcp_send_session_report_response(
+        ogs_pfcp_xact_t *xact, smf_sess_t *sess, uint8_t cause)
+{
+    int rv;
+    ogs_pkbuf_t *sxabuf = NULL;
+    ogs_pfcp_header_t h;
+
+    ogs_assert(xact);
+
+    memset(&h, 0, sizeof(ogs_pfcp_header_t));
+    h.type = OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE;
+    h.seid = sess->upf_n4_seid;
+
+    sxabuf = ogs_pfcp_build_session_report_response(h.type, cause);
+    ogs_expect_or_return(sxabuf);
+
+    rv = ogs_pfcp_xact_update_tx(xact, &h, sxabuf);
+    ogs_expect_or_return(rv == OGS_OK);
+
+    rv = ogs_pfcp_xact_commit(xact);
+    ogs_expect(rv == OGS_OK);
+}

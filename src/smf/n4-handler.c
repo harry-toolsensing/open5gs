@@ -643,3 +643,110 @@ void smf_epc_n4_handle_session_deletion_response(
 
     SMF_SESS_CLEAR(sess);
 }
+
+void smf_n4_handle_session_report_request(
+        smf_sess_t *sess, ogs_pfcp_xact_t *pfcp_xact,
+        ogs_pfcp_session_report_request_t *pfcp_req)
+{
+    smf_ue_t *smf_ue = NULL;
+#if 0
+    smf_bearer_t *bearer = NULL;
+    smf_tunnel_t *tunnel = NULL;
+#endif
+
+    ogs_pfcp_report_type_t report_type;
+    uint8_t cause_value = 0;
+    uint16_t pdr_id = 0;
+
+    ogs_assert(pfcp_xact);
+    ogs_assert(pfcp_req);
+
+    cause_value = OGS_GTP_CAUSE_REQUEST_ACCEPTED;
+
+    if (!sess) {
+        ogs_warn("No Context");
+        cause_value = OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND;
+    }
+
+    if (pfcp_req->report_type.presence == 0) {
+        ogs_error("No Report Type");
+        cause_value = OGS_GTP_CAUSE_MANDATORY_IE_MISSING;
+    }
+
+    if (cause_value != OGS_GTP_CAUSE_REQUEST_ACCEPTED) {
+        ogs_pfcp_send_error_message(pfcp_xact, 0,
+                OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE,
+                cause_value, 0);
+        return;
+    }
+
+    ogs_assert(sess);
+    smf_ue = sess->smf_ue;
+    ogs_assert(smf_ue);
+
+#if 0
+    if (!smf_ue->gnode) {
+        ogs_error("No SGWC-UE GTP Node");
+        ogs_pfcp_send_error_message(pfcp_xact, sess ? sess->sgwu_sxa_seid : 0,
+                OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE,
+                OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND, 0);
+        return;
+    }
+#endif
+
+    smf_pfcp_send_session_report_response(
+            pfcp_xact, sess, OGS_PFCP_CAUSE_REQUEST_ACCEPTED);
+
+#if 0
+    report_type.value = pfcp_req->report_type.u8;
+
+    if (report_type.downlink_data_report) {
+        if (pfcp_req->downlink_data_report.presence == 0) {
+            ogs_error("No Downlink Data Report");
+            return;
+        }
+
+        if (pfcp_req->downlink_data_report.pdr_id.presence == 0) {
+            ogs_error("No PDR-ID");
+            return;
+        }
+
+        pdr_id = pfcp_req->downlink_data_report.pdr_id.u16;
+
+        ogs_list_for_each(&sess->bearer_list, bearer) {
+            ogs_list_for_each(&bearer->tunnel_list, tunnel) {
+                ogs_assert(tunnel->pdr);
+                if (tunnel->pdr->id == pdr_id) {
+                    smf_gtp_send_downlink_data_notification(
+                        OGS_GTP_CAUSE_INVALID_VALUE, bearer);
+                    return;
+                }
+            }
+        }
+
+        ogs_error("Cannot find the PDR-ID[%d]", pdr_id);
+
+    } else if (report_type.error_indication_report) {
+        bearer = smf_bearer_find_by_error_indication_report(
+                sess, &pfcp_req->error_indication_report);
+
+        if (!bearer) return;
+
+        ogs_list_for_each(&smf_ue->sess_list, sess) {
+
+            sess->state.release_access_bearers = false;
+
+            smf_pfcp_send_sess_modification_request(sess,
+            /* We only use the `assoc_xact` parameter temporarily here
+             * to pass the `bearer` context. */
+                    (ogs_gtp_xact_t *)bearer,
+                    NULL,
+                    OGS_PFCP_MODIFY_DL_ONLY|OGS_PFCP_MODIFY_DEACTIVATE|
+                    OGS_PFCP_MODIFY_ERROR_INDICATION);
+        }
+
+    } else {
+        ogs_error("Not supported Report Type[%d]", report_type.value);
+    }
+#endif
+}
