@@ -1175,7 +1175,6 @@ ogs_pkbuf_t *ngap_ue_build_pdu_session_resource_setup_request(
     NGAP_PDUSessionResourceSetupListSUReq_t *PDUSessionList = NULL;
     NGAP_PDUSessionResourceSetupItemSUReq_t *PDUSessionItem = NULL;
 
-    ogs_assert(gmmbuf);
     ogs_assert(amf_ue);
     ran_ue = ran_ue_cycle(amf_ue->ran_ue);
     ogs_assert(ran_ue);
@@ -1220,20 +1219,22 @@ ogs_pkbuf_t *ngap_ue_build_pdu_session_resource_setup_request(
     asn_uint642INTEGER(AMF_UE_NGAP_ID, ran_ue->amf_ue_ngap_id);
     *RAN_UE_NGAP_ID = ran_ue->ran_ue_ngap_id;
 
-    ie = CALLOC(1, sizeof(NGAP_PDUSessionResourceSetupRequestIEs_t));
-    ASN_SEQUENCE_ADD(&PDUSessionResourceSetupRequest->protocolIEs, ie);
+    if (gmmbuf) {
+        ie = CALLOC(1, sizeof(NGAP_PDUSessionResourceSetupRequestIEs_t));
+        ASN_SEQUENCE_ADD(&PDUSessionResourceSetupRequest->protocolIEs, ie);
 
-    ie->id = NGAP_ProtocolIE_ID_id_NAS_PDU;
-    ie->criticality = NGAP_Criticality_reject;
-    ie->value.present =
-        NGAP_PDUSessionResourceSetupRequestIEs__value_PR_NAS_PDU;
+        ie->id = NGAP_ProtocolIE_ID_id_NAS_PDU;
+        ie->criticality = NGAP_Criticality_reject;
+        ie->value.present =
+            NGAP_PDUSessionResourceSetupRequestIEs__value_PR_NAS_PDU;
 
-    NAS_PDU = &ie->value.choice.NAS_PDU;
+        NAS_PDU = &ie->value.choice.NAS_PDU;
 
-    NAS_PDU->size = gmmbuf->len;
-    NAS_PDU->buf = CALLOC(NAS_PDU->size, sizeof(uint8_t));
-    memcpy(NAS_PDU->buf, gmmbuf->data, NAS_PDU->size);
-    ogs_pkbuf_free(gmmbuf);
+        NAS_PDU->size = gmmbuf->len;
+        NAS_PDU->buf = CALLOC(NAS_PDU->size, sizeof(uint8_t));
+        memcpy(NAS_PDU->buf, gmmbuf->data, NAS_PDU->size);
+        ogs_pkbuf_free(gmmbuf);
+    }
 
     ogs_list_for_each(&amf_ue->sess_list, sess) {
         NGAP_S_NSSAI_t *s_NSSAI = NULL;
