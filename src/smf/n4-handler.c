@@ -756,12 +756,14 @@ void smf_n4_handle_session_report_request(
         smf_pfcp_send_session_report_response(
                 pfcp_xact, sess, OGS_PFCP_CAUSE_REQUEST_ACCEPTED);
 
+#if 0
         n2smbuf = ngap_build_pdu_session_resource_setup_request_transfer(sess);
         ogs_assert(n2smbuf);
 
         smf_namf_comm_send_n1_n2_message_transfer(
                 sess, SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT,
                 NULL, n2smbuf);
+#endif
 
     } else if (report_type.error_indication_report) {
         /* TODO */

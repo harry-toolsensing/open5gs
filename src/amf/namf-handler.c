@@ -247,7 +247,9 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
 
             } else if (CM_CONNECTED(amf_ue)) {
 
+#if 0
                 ngap_send_n2_only_request(amf_ue);
+#endif
 
                 ogs_pkbuf_free(sess->
                     transfer.pdu_session_resource_setup_request);
