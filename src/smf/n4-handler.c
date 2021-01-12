@@ -303,16 +303,15 @@ void smf_5gc_n4_handle_session_modification_response(
                 ngap_build_path_switch_request_ack_transfer(sess);
             ogs_assert(n2smbuf);
 
-            smf_sbi_send_sm_context_updated_data_with_n2buf(sess, stream, 
+            smf_sbi_send_sm_context_updated_data_n2smbuf(sess, stream,
                 OpenAPI_n2_sm_info_type_PATH_SWITCH_REQ_ACK, n2smbuf);
         } else {            
-            /* ACTIVATED Is NOT Included in RESPONSE */
-            smf_sbi_send_sm_context_updated_data(sess, stream, 0);
+            smf_sbi_send_http_status_no_content(stream);
         }
 
     } else if (flags & OGS_PFCP_MODIFY_DEACTIVATE) {
         /* Only ACTIVING & DEACTIVATED is Included */
-        smf_sbi_send_sm_context_updated_data(
+        smf_sbi_send_sm_context_updated_data_up_cnx_state(
                 sess, stream, OpenAPI_up_cnx_state_DEACTIVATED);
     } else if (flags & OGS_PFCP_MODIFY_CREATE) {
         ogs_pkbuf_t *n1smbuf = NULL, *n2smbuf = NULL;
@@ -381,9 +380,18 @@ void smf_5gc_n4_handle_session_deletion_response(
     ogs_assert(sess);
 
     if (trigger == OGS_PFCP_DELETE_TRIGGER_UE_REQUESTED) {
+        ogs_pkbuf_t *n1smbuf = NULL, *n2smbuf = NULL;
 
-        smf_sbi_send_sm_context_updated_data_in_session_deletion(sess, stream);
+        n1smbuf = gsm_build_pdu_session_release_command(
+                sess, OGS_5GSM_CAUSE_REGULAR_DEACTIVATION);
+        ogs_assert(n1smbuf);
 
+        n2smbuf = ngap_build_pdu_session_resource_release_command_transfer(
+                NGAP_Cause_PR_nas, NGAP_CauseNas_normal_release);
+        ogs_assert(n2smbuf);
+
+        smf_sbi_send_sm_context_updated_data_n1_n2_message(sess, stream,
+                n1smbuf, OpenAPI_n2_sm_info_type_PDU_RES_REL_CMD, n2smbuf);
     } else {
 
         memset(&sendmsg, 0, sizeof(sendmsg));
