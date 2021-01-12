@@ -1517,6 +1517,14 @@ void amf_sess_remove(amf_sess_t *sess)
     if (sess->pdu_session_establishment_accept)
         ogs_pkbuf_free(sess->pdu_session_establishment_accept);
 
+    if (sess->transfer.pdu_session_resource_setup_request)
+        ogs_pkbuf_free(sess->transfer.pdu_session_resource_setup_request);
+    sess->transfer.pdu_session_resource_setup_request = NULL;
+
+    if (sess->transfer.path_switch_request_ack)
+        ogs_pkbuf_free(sess->transfer.path_switch_request_ack);
+    sess->transfer.path_switch_request_ack = NULL;
+
     OGS_NAS_CLEAR_DATA(&sess->ue_pco);
     OGS_TLV_CLEAR_DATA(&sess->pgw_pco);
 

@@ -663,6 +663,8 @@ void smf_n4_handle_session_report_request(
     uint8_t cause_value = 0;
     uint16_t pdr_id = 0;
 
+    ogs_pkbuf_t *n2smbuf = NULL;
+
     ogs_assert(pfcp_xact);
     ogs_assert(pfcp_req);
 
@@ -753,6 +755,13 @@ void smf_n4_handle_session_report_request(
 
         smf_pfcp_send_session_report_response(
                 pfcp_xact, sess, OGS_PFCP_CAUSE_REQUEST_ACCEPTED);
+
+        n2smbuf = ngap_build_pdu_session_resource_setup_request_transfer(sess);
+        ogs_assert(n2smbuf);
+
+        smf_namf_comm_send_n1_n2_message_transfer(
+                sess, SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT,
+                NULL, n2smbuf);
 
     } else if (report_type.error_indication_report) {
         /* TODO */

@@ -31,7 +31,6 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
     OpenAPI_n1_n2_message_transfer_cause_e cause;
 
     amf_ue_t *amf_ue = NULL;
-    ran_ue_t *ran_ue = NULL;
     amf_sess_t *sess = NULL;
 
     ogs_pkbuf_t *n1buf = NULL;
@@ -81,9 +80,6 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
         ogs_error("No UE context [%s]", supi);
         return OGS_ERROR;
     }
-
-    ran_ue = ran_ue_cycle(amf_ue->ran_ue);
-    ogs_assert(ran_ue);
 
     sess = amf_sess_find_by_psi(amf_ue, pdu_session_id);
     if (!sess) {
@@ -175,9 +171,15 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
         }
 
         if (gmmbuf) {
+            ran_ue_t *ran_ue = NULL;
+
             /***********************************
              * 4.3.2 PDU Session Establishment *
              ***********************************/
+
+            ran_ue = ran_ue_cycle(amf_ue->ran_ue);
+            ogs_assert(ran_ue);
+
             if (sess->pdu_session_establishment_accept) {
                 ogs_pkbuf_free(sess->pdu_session_establishment_accept);
                 sess->pdu_session_establishment_accept = NULL;
@@ -211,6 +213,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
             } else {
                 sess->pdu_session_establishment_accept = ngapbuf;
             }
+
         } else {
             /*********************************************
              * 4.2.3.3 Network Triggered Service Request *
@@ -235,21 +238,19 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
              *        from ogs_sbi_message_free().
              *        So it must be copied and push a event queue.
              */
-            sess->transfer.pdu_session_resource_setup_request =
-                ogs_pkbuf_copy(n2buf);
+            sess->transfer.pdu_session_resource_setup_request = n2buf;
             ogs_assert(sess->transfer.pdu_session_resource_setup_request);
 
             if (CM_IDLE(amf_ue)) {
+                ogs_fatal("send paging");
             } else if (CM_CONNECTED(amf_ue)) {
-
                 ngap_send_n2_only_request(amf_ue);
 
                 ogs_pkbuf_free(sess->
                     transfer.pdu_session_resource_setup_request);
                 sess->transfer.pdu_session_resource_setup_request = NULL;
             } else {
-                ogs_fatal("[%s] Invalid AMF-UE state [%p]",
-                        amf_ue->supi, amf_ue->ran_ue);
+                ogs_fatal("[%s] Invalid AMF-UE state", amf_ue->supi);
                 ogs_assert_if_reached();
             }
 
