@@ -47,8 +47,7 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
 
     ogs_assert(data);
     ogs_assert(data->state);
-    ogs_assert(data->n1smbuf);
-    ogs_assert(data->n2smbuf);
+    ogs_assert(data->n1smbuf || data->n2smbuf);
 
     memset(&message, 0, sizeof(message));
     message.h.method = (char *)OGS_SBI_HTTP_METHOD_POST;
@@ -62,46 +61,18 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
 
     memset(&N1N2MessageTransferReqData, 0, sizeof(N1N2MessageTransferReqData));
     N1N2MessageTransferReqData.pdu_session_id = sess->psi;
-    N1N2MessageTransferReqData.n1_message_container = &n1MessageContainer;
-    N1N2MessageTransferReqData.n2_info_container = &n2InfoContainer;
 
-    memset(&n1MessageContainer, 0, sizeof(n1MessageContainer));
-    n1MessageContainer.n1_message_class = OpenAPI_n1_message_class_SM;
-    n1MessageContainer.n1_message_content = &n1MessageContent;
+    if (data->n1smbuf) {
+        N1N2MessageTransferReqData.n1_message_container = &n1MessageContainer;
 
-    memset(&n1MessageContent, 0, sizeof(n1MessageContent));
-    n1MessageContent.content_id = (char *)OGS_SBI_CONTENT_5GNAS_SM_ID;
+        memset(&n1MessageContainer, 0, sizeof(n1MessageContainer));
+        n1MessageContainer.n1_message_class = OpenAPI_n1_message_class_SM;
+        n1MessageContainer.n1_message_content = &n1MessageContent;
 
-    memset(&n2InfoContainer, 0, sizeof(n2InfoContainer));
-    n2InfoContainer.n2_information_class = OpenAPI_n2_information_class_SM;
-    n2InfoContainer.sm_info = &smInfo;
+        memset(&n1MessageContent, 0, sizeof(n1MessageContent));
+        n1MessageContent.content_id = (char *)OGS_SBI_CONTENT_5GNAS_SM_ID;
 
-    memset(&smInfo, 0, sizeof(smInfo));
-    smInfo.pdu_session_id = sess->psi;
-    smInfo.n2_info_content = &n2InfoContent;
-
-    memset(&n2InfoContent, 0, sizeof(n2InfoContent));
-    switch (data->state) {
-    case SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT:
-        n2InfoContent.ngap_ie_type = OpenAPI_ngap_ie_type_PDU_RES_SETUP_REQ;
-        break;
-    case SMF_NETWORK_REQUESTED_PDU_SESSION_MODIFICATION:
-    case SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION:
-        n2InfoContent.ngap_ie_type = OpenAPI_ngap_ie_type_PDU_RES_MOD_REQ;
-        break;
-    default:
-        ogs_fatal("Unexpected state [%d]", data->state);
-        ogs_assert_if_reached();
-    }
-    n2InfoContent.ngap_data = &ngapData;
-
-    memset(&ngapData, 0, sizeof(ngapData));
-    ngapData.content_id = (char *)OGS_SBI_CONTENT_NGAP_SM_ID;
-
-    message.num_of_part = 0;
-
-    message.part[message.num_of_part].pkbuf = data->n1smbuf;
-    if (message.part[message.num_of_part].pkbuf) {
+        message.part[message.num_of_part].pkbuf = data->n1smbuf;
         message.part[message.num_of_part].content_id =
             (char *)OGS_SBI_CONTENT_5GNAS_SM_ID;
         message.part[message.num_of_part].content_type =
@@ -109,8 +80,36 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
         message.num_of_part++;
     }
 
-    message.part[message.num_of_part].pkbuf = data->n2smbuf;
-    if (message.part[message.num_of_part].pkbuf) {
+    if (data->n2smbuf) {
+        N1N2MessageTransferReqData.n2_info_container = &n2InfoContainer;
+
+        memset(&n2InfoContainer, 0, sizeof(n2InfoContainer));
+        n2InfoContainer.n2_information_class = OpenAPI_n2_information_class_SM;
+        n2InfoContainer.sm_info = &smInfo;
+
+        memset(&smInfo, 0, sizeof(smInfo));
+        smInfo.pdu_session_id = sess->psi;
+        smInfo.n2_info_content = &n2InfoContent;
+
+        memset(&n2InfoContent, 0, sizeof(n2InfoContent));
+        switch (data->state) {
+        case SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT:
+            n2InfoContent.ngap_ie_type = OpenAPI_ngap_ie_type_PDU_RES_SETUP_REQ;
+            break;
+        case SMF_NETWORK_REQUESTED_PDU_SESSION_MODIFICATION:
+        case SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION:
+            n2InfoContent.ngap_ie_type = OpenAPI_ngap_ie_type_PDU_RES_MOD_REQ;
+            break;
+        default:
+            ogs_fatal("Unexpected state [%d]", data->state);
+            ogs_assert_if_reached();
+        }
+        n2InfoContent.ngap_data = &ngapData;
+
+        memset(&ngapData, 0, sizeof(ngapData));
+        ngapData.content_id = (char *)OGS_SBI_CONTENT_NGAP_SM_ID;
+
+        message.part[message.num_of_part].pkbuf = data->n2smbuf;
         message.part[message.num_of_part].content_id =
             (char *)OGS_SBI_CONTENT_NGAP_SM_ID;
         message.part[message.num_of_part].content_type =
