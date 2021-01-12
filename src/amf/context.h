@@ -262,6 +262,7 @@ struct amf_ue_s {
 
     /* UE Info */
     ogs_guami_t     *guami;
+    uint16_t        gnb_ostream_id;
     ogs_5gs_tai_t   tai;
     ogs_nr_cgi_t    nr_cgi;
     ogs_time_t      ue_location_timestamp;

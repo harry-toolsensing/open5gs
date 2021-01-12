@@ -126,7 +126,8 @@ int gmm_handle_registration_request(amf_ue_t *amf_ue,
             ogs_plmn_id_hexdump(&ran_ue->saved.nr_cgi.plmn_id),
             (long long)ran_ue->saved.nr_cgi.cell_id);
 
-    /* Copy TAI and ECGI from ran_ue */
+    /* Copy Stream-No/TAI/ECGI from enb_ue */
+    amf_ue->gnb_ostream_id = ran_ue->gnb_ostream_id;
     memcpy(&amf_ue->tai, &ran_ue->saved.tai, sizeof(ogs_5gs_tai_t));
     memcpy(&amf_ue->nr_cgi, &ran_ue->saved.nr_cgi, sizeof(ogs_nr_cgi_t));
     amf_ue->ue_location_timestamp = ogs_time_now();
@@ -370,7 +371,8 @@ int gmm_handle_service_request(amf_ue_t *amf_ue,
             ogs_plmn_id_hexdump(&ran_ue->saved.nr_cgi.plmn_id),
             (long long)ran_ue->saved.nr_cgi.cell_id);
 
-    /* Copy TAI and ECGI from ran_ue */
+    /* Copy Stream-No/TAI/ECGI from enb_ue */
+    amf_ue->gnb_ostream_id = ran_ue->gnb_ostream_id;
     memcpy(&amf_ue->tai, &ran_ue->saved.tai, sizeof(ogs_5gs_tai_t));
     memcpy(&amf_ue->nr_cgi, &ran_ue->saved.nr_cgi, sizeof(ogs_nr_cgi_t));
     amf_ue->ue_location_timestamp = ogs_time_now();
