@@ -141,8 +141,7 @@ void nas_5gs_send_service_accept(amf_ue_t *amf_ue)
 
     if (ran_ue->ue_context_requested == true &&
         ran_ue->initial_context_setup_request_sent == false) {
-        ngapbuf = ngap_ue_build_initial_context_setup_request(
-                amf_ue, gmmbuf);
+        ngapbuf = ngap_ue_build_initial_context_setup_request(amf_ue, gmmbuf);
         ogs_expect_or_return(ngapbuf);
 
         rv = nas_5gs_send_to_gnb(amf_ue, ngapbuf);

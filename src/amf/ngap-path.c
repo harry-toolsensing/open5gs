@@ -355,7 +355,41 @@ void ngap_send_paging(amf_ue_t *amf_ue, NGAP_CNDomain_t cn_domain)
     ogs_timer_start(amf_ue->t3413.timer, 
             amf_timer_cfg(AMF_TIMER_T3413)->duration);
 }
+#endif
 
+void ngap_send_n2_only_request(amf_ue_t *amf_ue)
+{
+    int rv;
+    ran_ue_t *ran_ue = NULL;
+
+    ogs_pkbuf_t *ngapbuf = NULL;
+
+    ogs_assert(amf_ue);
+    ran_ue = ran_ue_cycle(amf_ue->ran_ue);
+    ogs_assert(ran_ue);
+
+    ogs_assert(SESSION_TRANSFER_NEEDED(amf_ue));
+
+    if (ran_ue->ue_context_requested == true &&
+        ran_ue->initial_context_setup_request_sent == false) {
+        ngapbuf = ngap_ue_build_initial_context_setup_request(amf_ue, NULL);
+        ogs_expect_or_return(ngapbuf);
+
+        rv = nas_5gs_send_to_gnb(amf_ue, ngapbuf);
+        ogs_expect_or_return(rv == OGS_OK);
+
+        ran_ue->initial_context_setup_request_sent = true;
+    } else {
+        ngapbuf = ngap_ue_build_pdu_session_resource_setup_request(
+                amf_ue, NULL);
+        ogs_expect_or_return(ngapbuf);
+
+        rv = nas_5gs_send_to_gnb(amf_ue, ngapbuf);
+        ogs_expect_or_return(rv == OGS_OK);
+    }
+}
+
+#if 0
 void ngap_send_amf_configuration_transfer(
         amf_gnb_t *target_gnb,
         NGAP_SONConfigurationTransfer_t *SONConfigurationTransfer)
