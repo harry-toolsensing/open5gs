@@ -221,18 +221,6 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
         ogs_assert_if_reached();
     }
 
-
-#if 0
-    if (CM_IDLE(amf_ue)) {
-        ogs_fatal("Not implemented");
-        ogs_assert_if_reached();
-    } else if (CM_CONNECTED(amf_ue)) {
-    } else {
-        ogs_fatal("[%s] Invalid RAN-UE : [%p]", amf_ue->supi, amf_ue->ran_ue);
-        ogs_assert_if_reached();
-    }
-#endif
-
     memset(&sendmsg, 0, sizeof(sendmsg));
 
     if (status == OGS_SBI_HTTP_STATUS_OK) {

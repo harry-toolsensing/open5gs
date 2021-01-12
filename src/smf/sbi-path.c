@@ -160,8 +160,7 @@ void smf_namf_comm_send_n1_n2_message_transfer(
     smf_n1_n2_message_transfer_data_t data;
 
     ogs_assert(state);
-    ogs_assert(n1smbuf);
-    ogs_assert(n2smbuf);
+    ogs_assert(n1smbuf || n2smbuf);
 
     ogs_assert(sess);
     smf_ue = sess->smf_ue;
