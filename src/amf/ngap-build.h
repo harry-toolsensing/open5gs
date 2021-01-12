@@ -50,10 +50,7 @@ ogs_pkbuf_t *ngap_build_pdu_session_resource_modify_request(
 ogs_pkbuf_t *ngap_build_pdu_session_resource_release_command(
     amf_sess_t *sess, ogs_pkbuf_t *gmmbuf, ogs_pkbuf_t *n2smbuf);
 
-#if 0
-ogs_pkbuf_t *ngap_build_paging(
-        amf_ue_t *amf_ue, NGAP_CNDomain_t cn_domain);
-#endif
+ogs_pkbuf_t *ngap_build_paging(amf_ue_t *amf_ue);
 
 ogs_pkbuf_t *ngap_build_amf_configuration_transfer(
     NGAP_SONConfigurationTransfer_t *son_configuration_transfer);

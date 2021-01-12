@@ -341,14 +341,8 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e)
 
             } else {
                 amf_ue->t3513.retry_count++;
-                /*
-                 * If t3513 is timeout, the saved pkbuf is used.
-                 * We don't have to set CNDomain.
-                 * So, we just set CNDomain to 0
-                 */
-#if 0
-                ngap_send_paging(amf_ue, 0);
-#endif
+                /* If t3513 is timeout, the saved pkbuf is used.  */
+                ngap_send_paging(amf_ue);
             }
             break;
 

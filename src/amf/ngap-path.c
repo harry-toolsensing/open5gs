@@ -320,42 +320,41 @@ void ngap_send_amf_ue_context_release_command(
     }
 }
 
-#if 0
-void ngap_send_paging(amf_ue_t *amf_ue, NGAP_CNDomain_t cn_domain)
+void ngap_send_paging(amf_ue_t *amf_ue)
 {
     ogs_pkbuf_t *ngapbuf = NULL;
     amf_gnb_t *gnb = NULL;
-    int i;
+    int i, j;
     int rv;
 
-    /* Find enB with matched TAI */
     ogs_list_for_each(&amf_self()->gnb_list, gnb) {
         for (i = 0; i < gnb->num_of_supported_ta_list; i++) {
+            for (j = 0; j < gnb->supported_ta_list[i].num_of_bplmn_list; j++) {
+                if (memcmp(&gnb->supported_ta_list[i].bplmn_list[j].plmn_id,
+                            &amf_ue->tai.plmn_id, OGS_PLMN_ID_LEN) == 0 &&
+                    gnb->supported_ta_list[i].tac.v == amf_ue->tai.tac.v) {
 
-            if (memcmp(&gnb->supported_ta_list[i], &amf_ue->tai,
-                        sizeof(ogs_5gs_tai_t)) == 0) {
+                    if (amf_ue->t3513.pkbuf) {
+                        ngapbuf = amf_ue->t3513.pkbuf;
+                    } else {
+                        ngapbuf = ngap_build_paging(amf_ue);
+                        ogs_expect_or_return(ngapbuf);
+                    }
 
-                if (amf_ue->t3413.pkbuf) {
-                    ngapbuf = amf_ue->t3413.pkbuf;
-                } else {
-                    ngapbuf = ngap_build_paging(amf_ue, cn_domain);
-                    ogs_expect_or_return(ngapbuf);
+                    amf_ue->t3513.pkbuf = ogs_pkbuf_copy(ngapbuf);
+                    ogs_assert(amf_ue->t3513.pkbuf);
+
+                    rv = ngap_send_to_gnb(gnb, ngapbuf, NGAP_NON_UE_SIGNALLING);
+                    ogs_expect(rv == OGS_OK);
                 }
-
-                amf_ue->t3413.pkbuf = ogs_pkbuf_copy(ngapbuf);
-                ogs_assert(amf_ue->t3413.pkbuf);
-
-                rv = ngap_send_to_gnb(gnb, ngapbuf, NGAP_NON_UE_SIGNALLING);
-                ogs_expect(rv == OGS_OK);
             }
         }
     }
 
-    /* Start T3413 */
-    ogs_timer_start(amf_ue->t3413.timer, 
-            amf_timer_cfg(AMF_TIMER_T3413)->duration);
+    /* Start T3513 */
+    ogs_timer_start(amf_ue->t3513.timer, 
+            amf_timer_cfg(AMF_TIMER_T3513)->duration);
 }
-#endif
 
 void ngap_send_n2_only_request(amf_ue_t *amf_ue)
 {

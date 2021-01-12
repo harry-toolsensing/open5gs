@@ -242,16 +242,22 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
             ogs_assert(sess->transfer.pdu_session_resource_setup_request);
 
             if (CM_IDLE(amf_ue)) {
-                ogs_fatal("send paging");
+
+                ngap_send_paging(amf_ue);
+
             } else if (CM_CONNECTED(amf_ue)) {
+
                 ngap_send_n2_only_request(amf_ue);
 
                 ogs_pkbuf_free(sess->
                     transfer.pdu_session_resource_setup_request);
                 sess->transfer.pdu_session_resource_setup_request = NULL;
+
             } else {
+
                 ogs_fatal("[%s] Invalid AMF-UE state", amf_ue->supi);
                 ogs_assert_if_reached();
+
             }
 
         }
