@@ -298,14 +298,14 @@ void smf_5gc_n4_handle_session_modification_response(
     }
 
     if (flags & OGS_PFCP_MODIFY_ACTIVATE) {
-        if (flags & OGS_PFCP_MODIFY_PATH_SWITCH) {    
+        if (flags & OGS_PFCP_MODIFY_PATH_SWITCH) {
             ogs_pkbuf_t *n2smbuf =
                 ngap_build_path_switch_request_ack_transfer(sess);
             ogs_assert(n2smbuf);
 
             smf_sbi_send_sm_context_updated_data_n2smbuf(sess, stream,
                 OpenAPI_n2_sm_info_type_PATH_SWITCH_REQ_ACK, n2smbuf);
-        } else {            
+        } else {
             smf_sbi_send_http_status_no_content(stream);
         }
 
