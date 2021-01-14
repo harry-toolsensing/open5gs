@@ -273,6 +273,8 @@ typedef struct smf_sess_s {
         ogs_tlv_octet_t ue_pco;
         ogs_tlv_octet_t user_location_information;
         ogs_tlv_octet_t ue_timezone;
+        bool create_session_response_apn_ambr;
+        bool create_session_response_bearer_qos;
     } gtp; /* Saved from S5-C */
 
     struct {
@@ -281,11 +283,6 @@ typedef struct smf_sess_s {
 
     ogs_pcc_rule_t  pcc_rule[OGS_MAX_NUM_OF_PCC_RULE]; /* Saved from Gx */
     int             num_of_pcc_rule;
-
-    struct {
-        bool create_session_response_apn_ambr;
-        bool create_session_response_bearer_qos;
-    } gtp_5gc;
 
     /* Release Holding timer of SMF session context */
     ogs_timer_t     *t_release_holding;
