@@ -254,11 +254,14 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
 
             } else if (CM_CONNECTED(amf_ue)) {
 
-#if 0
-                ngap_send_pdu_resource_setup_request(amf_ue);
-#endif
                 ogs_error("CM_CONNECTED");
 
+                ngap_send_pdu_resource_setup_request(amf_ue);
+
+                /*
+                 * After sending N2 message, N2 SM context is freed
+                 * For checking memory, NULL pointer should be set to n2smbuf.
+                 */
                 ogs_pkbuf_free(sess->
                     transfer.pdu_session_resource_setup_request);
                 sess->transfer.pdu_session_resource_setup_request = NULL;
