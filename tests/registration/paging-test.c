@@ -274,6 +274,8 @@ static void test1_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
+    ogs_msleep(100);
+
     /* Send UE context release request */
     sendbuf = testngap_build_ue_context_release_request(test_ue,
             NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_user_inactivity,
@@ -293,13 +295,13 @@ static void test1_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
+#if 0
     /* Send GTP-U ICMP Packet */
     qos_flow = test_qos_flow_find_by_qfi(sess, 1);
     ogs_assert(qos_flow);
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-#if 0
     /*
      * Send InitialUEMessage +
      * Service request

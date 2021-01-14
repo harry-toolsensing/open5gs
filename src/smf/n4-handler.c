@@ -306,6 +306,7 @@ void smf_5gc_n4_handle_session_modification_response(
             smf_sbi_send_sm_context_updated_data_n2smbuf(sess, stream,
                 OpenAPI_n2_sm_info_type_PATH_SWITCH_REQ_ACK, n2smbuf);
         } else {
+            sess->ue_requested_pdu_session_establishment_done = true;
             smf_sbi_send_http_status_no_content(stream);
         }
 
@@ -757,12 +758,15 @@ void smf_n4_handle_session_report_request(
                 pfcp_xact, sess, OGS_PFCP_CAUSE_REQUEST_ACCEPTED);
 
 #if 0
-        n2smbuf = ngap_build_pdu_session_resource_setup_request_transfer(sess);
-        ogs_assert(n2smbuf);
+        if (sess->ue_requested_pdu_session_establishment_done == true) {
+            n2smbuf = ngap_build_pdu_session_resource_setup_request_transfer(
+                    sess);
+            ogs_assert(n2smbuf);
 
-        smf_namf_comm_send_n1_n2_message_transfer(
-                sess, SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT,
-                NULL, n2smbuf);
+            smf_namf_comm_send_n1_n2_message_transfer(
+                    sess, SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT,
+                    NULL, n2smbuf);
+        }
 #endif
 
     } else if (report_type.error_indication_report) {

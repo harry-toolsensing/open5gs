@@ -284,6 +284,8 @@ typedef struct smf_sess_s {
     ogs_pcc_rule_t  pcc_rule[OGS_MAX_NUM_OF_PCC_RULE]; /* Saved from Gx */
     int             num_of_pcc_rule;
 
+    bool ue_requested_pdu_session_establishment_done;
+
     /* Release Holding timer of SMF session context */
     ogs_timer_t     *t_release_holding;
 
