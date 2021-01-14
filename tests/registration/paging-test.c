@@ -1504,6 +1504,14 @@ static void registration_ue_context_test4_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
+    /* Receive PDUSessionResourceSetupRequest */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+    ABTS_INT_EQUAL(tc,
+            NGAP_ProcedureCode_id_PDUSessionResourceSetup,
+            test_ue->ngap_procedure_code);
+
     /* Receive PDUSessionResourceSetupRequest +
      * Service accept */
     recvbuf = testgnb_ngap_read(ngap);
@@ -1513,6 +1521,12 @@ static void registration_ue_context_test4_func(abts_case *tc, void *data)
             NGAP_ProcedureCode_id_PDUSessionResourceSetup,
             test_ue->ngap_procedure_code);
     ABTS_INT_EQUAL(tc, 0x0000, test_ue->pdu_session_reactivation_result);
+
+    /* Send PDUSessionResourceSetupResponse */
+    sendbuf = testngap_sess_build_pdu_session_resource_setup_response(sess);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Send PDUSessionResourceSetupResponse */
     sendbuf = testngap_ue_build_pdu_session_resource_setup_response(test_ue);
@@ -2051,8 +2065,8 @@ abts_suite *test_paging(abts_suite *suite)
 
     abts_run_test(suite, vonr_qos_flow_test1_func, NULL);
     abts_run_test(suite, vonr_session_test2_func, NULL);
-#if 0
     abts_run_test(suite, registration_ue_context_test4_func, NULL);
+#if 0
     abts_run_test(suite, registration_idle_test1_func, NULL);
 #endif
 
