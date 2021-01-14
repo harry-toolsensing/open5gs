@@ -377,6 +377,9 @@ static void vonr_qos_flow_test1_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
+    /* Waiting for creating dedicated QoS flow in PFCP protocol */
+    ogs_msleep(100);
+
     /* Send UE context release request */
     sendbuf = testngap_build_ue_context_release_request(test_ue,
             NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_user_inactivity,
@@ -1874,10 +1877,6 @@ static void registration_idle_test1_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-    /* Send GTP-U ICMP Packet */
-    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
-    ABTS_INT_EQUAL(tc, OGS_OK, rv);
-
     /*
      * Send InitialUEMessage +
      * Service request
@@ -1899,6 +1898,10 @@ static void registration_idle_test1_func(abts_case *tc, void *data)
     sendbuf = testngap_build_initial_ue_message(test_ue, gmmbuf, true, true);
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Send GTP-U ICMP Packet */
+    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /* Receive InitialContextSetupRequest +
