@@ -1064,9 +1064,6 @@ static void vonr_session_test2_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-    /* Test Session Remove */
-    test_sess_remove(sess);
-
     /* Send PDU session resource release complete */
     sess->ul_nas_transport_param.request_type = 0;
     sess->ul_nas_transport_param.dnn = 0;
@@ -1081,6 +1078,14 @@ static void vonr_session_test2_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Test Session Remove */
+    test_sess_remove(sess);
+
+    /*
+     * TODO: FIX:
+     *
+     * Without this sleep, test program is not working */
 
     /* Send UE context release request */
     sendbuf = testngap_build_ue_context_release_request(test_ue,
