@@ -31,6 +31,7 @@ typedef struct smf_n1_n2_message_transfer_data_s {
 #define SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT      1
 #define SMF_NETWORK_REQUESTED_PDU_SESSION_MODIFICATION  2
 #define SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION     3
+#define SMF_NETWORK_TRIGGERED_SERVICE_REQUEST           4
     int state;
 
     ogs_pkbuf_t *n1smbuf;

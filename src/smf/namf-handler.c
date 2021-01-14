@@ -37,6 +37,10 @@ bool smf_namf_comm_handler_n1_n2_message_transfer(
         /* Nothing */
         break;
 
+    case SMF_NETWORK_TRIGGERED_SERVICE_REQUEST:
+        /* Nothing */
+        break;
+
     default:
         ogs_fatal("Unexpected state [%d]", state);
         ogs_assert_if_reached();

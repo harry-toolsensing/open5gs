@@ -94,6 +94,7 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
         memset(&n2InfoContent, 0, sizeof(n2InfoContent));
         switch (data->state) {
         case SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT:
+        case SMF_NETWORK_TRIGGERED_SERVICE_REQUEST:
             n2InfoContent.ngap_ie_type = OpenAPI_ngap_ie_type_PDU_RES_SETUP_REQ;
             break;
         case SMF_NETWORK_REQUESTED_PDU_SESSION_MODIFICATION:
