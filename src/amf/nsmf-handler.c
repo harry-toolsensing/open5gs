@@ -212,7 +212,7 @@ int amf_nsmf_pdu_session_handle_update_sm_context(
                     ogs_pkbuf_copy(n2smbuf);
                 ogs_assert(sess->transfer.pdu_session_resource_setup_request);
 
-                if (SESSION_SYNC_DONE(amf_ue)) {
+                if (SESSION_SYNC_DONE(amf_ue, state)) {
                     nas_5gs_send_accept(amf_ue);
 
                 /*
@@ -292,7 +292,7 @@ int amf_nsmf_pdu_session_handle_update_sm_context(
                     ogs_pkbuf_copy(n2smbuf);
                 ogs_assert(sess->transfer.path_switch_request_ack);
 
-                if (SESSION_SYNC_DONE(amf_ue)) {
+                if (SESSION_SYNC_DONE(amf_ue, state)) {
                     ngap_send_path_switch_ack(sess);
 
                 /*
@@ -351,7 +351,7 @@ int amf_nsmf_pdu_session_handle_update_sm_context(
                  * 6. UEContextReleaseComplete
                  */
 
-                if (SESSION_SYNC_DONE(amf_ue)) {
+                if (SESSION_SYNC_DONE(amf_ue, state)) {
                     ngap_send_amf_ue_context_release_command(amf_ue,
                             NGAP_Cause_PR_nas, NGAP_CauseNas_normal_release,
                             NGAP_UE_CTX_REL_NG_REMOVE_AND_UNLINK, 0);
@@ -394,7 +394,7 @@ int amf_nsmf_pdu_session_handle_update_sm_context(
                  */
 
                 /* Nothing to do */
-                if (SESSION_SYNC_DONE(amf_ue)) {
+                if (SESSION_SYNC_DONE(amf_ue, state)) {
                     ran_ue_t *ran_ue = ran_ue_cycle(amf_ue->ran_ue);
                     if (ran_ue) {
                         ogs_debug("    SUPI[%s]", amf_ue->supi);

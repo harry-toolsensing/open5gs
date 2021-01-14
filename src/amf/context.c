@@ -1576,6 +1576,23 @@ int amf_sess_xact_count(amf_ue_t *amf_ue)
     return xact_count;
 }
 
+int amf_sess_xact_state_count(amf_ue_t *amf_ue, int state)
+{
+    amf_sess_t *sess = NULL;
+    ogs_sbi_xact_t *xact = NULL;
+    int xact_count = 0;
+
+    ogs_assert(amf_ue);
+    ogs_assert(state);
+
+    ogs_list_for_each(&amf_ue->sess_list, sess) {
+        ogs_list_for_each(&sess->sbi.xact_list, xact)
+            if (xact->state == state) xact_count++;
+    }
+
+    return xact_count;
+}
+
 bool amf_sess_transfer_needed(amf_ue_t *amf_ue)
 {
     amf_sess_t *sess = NULL;

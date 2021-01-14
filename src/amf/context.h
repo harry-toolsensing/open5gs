@@ -578,8 +578,10 @@ amf_sess_t *amf_sess_find_by_dnn(amf_ue_t *amf_ue, char *dnn);
 amf_ue_t *amf_ue_cycle(amf_ue_t *amf_ue);
 amf_sess_t *amf_sess_cycle(amf_sess_t *sess);
 
-#define SESSION_SYNC_DONE(__aMF) (amf_sess_xact_count(__aMF) == 0)
+#define SESSION_SYNC_DONE(__aMF, __sTATE) \
+    (amf_sess_xact_state_count(__aMF, __sTATE) == 0)
 int amf_sess_xact_count(amf_ue_t *amf_ue);
+int amf_sess_xact_state_count(amf_ue_t *amf_ue, int state);
 
 #define SESSION_TRANSFER_NEEDED(__aMF) (amf_sess_transfer_needed(__aMF) == true)
 bool amf_sess_transfer_needed(amf_ue_t *amf_ue);

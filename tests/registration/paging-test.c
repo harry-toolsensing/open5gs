@@ -1082,14 +1082,6 @@ static void vonr_session_test2_func(abts_case *tc, void *data)
     /* Test Session Remove */
     test_sess_remove(sess);
 
-#if 0
-    /*
-     * TODO: FIX:
-     *
-     * Without this sleep, test program is not working */
-    ogs_msleep(100);
-#endif
-
     /* Send UE context release request */
     sendbuf = testngap_build_ue_context_release_request(test_ue,
             NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_user_inactivity,
