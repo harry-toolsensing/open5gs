@@ -1425,10 +1425,6 @@ static void test4_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
 
-    /* Send GTP-U ICMP Packet */
-    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
-    ABTS_INT_EQUAL(tc, OGS_OK, rv);
-
     /* Send UE context release complete */
     sendbuf = testngap_build_ue_context_release_complete(test_ue);
     ABTS_PTR_NOTNULL(tc, sendbuf);
@@ -1476,10 +1472,8 @@ static void test4_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-    /* Receive GTP-U ICMP Packet */
-    recvbuf = testgnb_gtpu_read(gtpu);
-    ABTS_PTR_NOTNULL(tc, recvbuf);
-    ogs_pkbuf_free(recvbuf);
+    /* Wait to setup N3 data connection */
+    ogs_msleep(100);
 
     /* Send GTP-U ICMP Packet */
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);

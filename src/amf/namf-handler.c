@@ -243,6 +243,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
 
             if (CM_IDLE(amf_ue)) {
 
+                ogs_fatal("CM_IDLE");
 #if 0
                 ngap_send_paging(amf_ue);
 #endif
@@ -256,6 +257,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
 #if 0
                 ngap_send_n2_only_request(amf_ue);
 #endif
+                ogs_error("CM_CONNECTED");
 
                 ogs_pkbuf_free(sess->
                     transfer.pdu_session_resource_setup_request);
