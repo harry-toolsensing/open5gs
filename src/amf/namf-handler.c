@@ -255,7 +255,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
             } else if (CM_CONNECTED(amf_ue)) {
 
 #if 0
-                ngap_send_n2_only_request(amf_ue);
+                ngap_send_pdu_resource_setup_request(amf_ue);
 #endif
                 ogs_error("CM_CONNECTED");
 
@@ -283,14 +283,25 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
             return OGS_ERROR;
         }
 
-        ngapbuf = ngap_build_pdu_session_resource_modify_request(
-                sess, gmmbuf, n2buf);
-        ogs_assert(ngapbuf);
+        if (CM_IDLE(amf_ue)) {
+            ogs_fatal("[%s] IDLE state is not implemented", amf_ue->supi);
+            ogs_assert_if_reached();
 
-        if (nas_5gs_send_to_gnb(amf_ue, ngapbuf) != OGS_OK) {
-            ogs_error("nas_5gs_send_to_gnb() failed");
-            status = OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR;
+        } else if (CM_CONNECTED(amf_ue)) {
+            ngapbuf = ngap_build_pdu_session_resource_modify_request(
+                    sess, gmmbuf, n2buf);
+            ogs_assert(ngapbuf);
+
+            if (nas_5gs_send_to_gnb(amf_ue, ngapbuf) != OGS_OK) {
+                ogs_error("nas_5gs_send_to_gnb() failed");
+                status = OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR;
+            }
+
+        } else {
+            ogs_fatal("[%s] Invalid AMF-UE state", amf_ue->supi);
+            ogs_assert_if_reached();
         }
+
         break;
 
     default:

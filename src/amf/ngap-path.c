@@ -356,7 +356,7 @@ void ngap_send_paging(amf_ue_t *amf_ue)
             amf_timer_cfg(AMF_TIMER_T3513)->duration);
 }
 
-void ngap_send_n2_only_request(amf_ue_t *amf_ue)
+void ngap_send_pdu_resource_setup_request(amf_ue_t *amf_ue)
 {
     int rv;
     ran_ue_t *ran_ue = NULL;

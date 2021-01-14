@@ -61,7 +61,7 @@ void ngap_send_amf_ue_context_release_command(
     uint8_t action, uint32_t delay);
 
 void ngap_send_paging(amf_ue_t *amf_ue);
-void ngap_send_n2_only_request(amf_ue_t *amf_ue);
+void ngap_send_pdu_resource_setup_request(amf_ue_t *amf_ue);
 
 void ngap_send_amf_configuration_transfer(
         amf_gnb_t *target_gnb,
