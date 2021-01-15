@@ -229,25 +229,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
 
                 ogs_fatal("CM_IDLE");
 
-                /* Store N2 Transfer message */
-                AMF_SESS_SETUP_N2_TRANSFER(
-                        sess, pdu_session_resource_setup_request, n2buf);
-
-                /* Store N1N2 Trasfer Failure Notification URI */
-                if (N1N2MessageTransferReqData->n1n2_failure_txf_notif_uri) {
-                    if (amf_ue->n1n2_failure_txf_notif_uri)
-                        ogs_free(amf_ue->n1n2_failure_txf_notif_uri);
-
-                    amf_ue->n1n2_failure_txf_notif_uri = ogs_strdup(
-                        N1N2MessageTransferReqData->n1n2_failure_txf_notif_uri);
-                }
-
-                ngap_send_paging(amf_ue);
-
-                status = OGS_SBI_HTTP_STATUS_ACCEPTED;
-                N1N2MessageTransferRspData.cause =
-                    OpenAPI_n1_n2_message_transfer_cause_ATTEMPTING_TO_REACH_UE;
-
+                /* Location */
                 server = ogs_sbi_server_from_stream(stream);
                 ogs_assert(server);
 
@@ -262,6 +244,21 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                 header.resource.component[3] = sess->sm_context_ref;
 
                 sendmsg.http.location = ogs_sbi_server_uri(server, &header);
+
+                /* Store Paging Info */
+                AMF_SESS_STORE_PAGING_INFO(
+                        sess, sendmsg.http.location,
+                        N1N2MessageTransferReqData->n1n2_failure_txf_notif_uri);
+
+                /* Store N2 Transfer message */
+                AMF_SESS_STORE_N2_TRANSFER(
+                        sess, pdu_session_resource_setup_request, n2buf);
+
+                status = OGS_SBI_HTTP_STATUS_ACCEPTED;
+                N1N2MessageTransferRspData.cause =
+                    OpenAPI_n1_n2_message_transfer_cause_ATTEMPTING_TO_REACH_UE;
+
+                ngap_send_paging(amf_ue);
 
             } else if (CM_CONNECTED(amf_ue)) {
                 ogs_error("CM_CONNECTED");

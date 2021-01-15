@@ -390,9 +390,6 @@ struct amf_ue_s {
     /* NGAP Transparent Container */
     OCTET_STRING_t  container;
 
-    /* Last Received n1-n2-trasfer-failure-notification-uri from SMF */
-    char *n1n2_failure_txf_notif_uri;
-
     ogs_list_t      sess_list;
 };
 
@@ -452,8 +449,7 @@ typedef struct amf_sess_s {
         ogs_pkbuf_t *pdu_session_resource_setup_request;
         ogs_pkbuf_t *path_switch_request_ack;
     } transfer;
-
-#define AMF_SESS_SETUP_N2_TRANSFER(__sESS, __n2Type, __n2Buf) \
+#define AMF_SESS_STORE_N2_TRANSFER(__sESS, __n2Type, __n2Buf) \
     do { \
         ogs_assert(__sESS); \
         ogs_assert((__sESS)->amf_ue); \
@@ -474,6 +470,42 @@ typedef struct amf_sess_s {
                 ogs_pkbuf_free(sess->transfer.__n2Type); \
                 sess->transfer.__n2Type = NULL; \
             } \
+        } \
+    } while(0);
+
+    struct {
+        /* Paging Ongoing */
+        bool ongoing;
+        /* Location in N1N2MessageTransferRspData */
+        char *location;
+        /* last Received n1-n2-trasfer-failure-notification-uri from SMF */
+        char *n1n2_failure_txf_notif_uri;
+    } paging;
+#define AMF_SESS_STORE_PAGING_INFO(__sESS, __lOCATION, __uRI) \
+    do { \
+        ogs_assert(__sESS); \
+        ogs_assert(__lOCATION); \
+        ogs_assert(__uRI); \
+        AMF_SESS_CLEAR_PAGING_INFO(__sESS) \
+        (__sESS)->paging.ongoing = true; \
+        ((__sESS)->paging.location) = ogs_strdup(__lOCATION); \
+        ((__sESS)->paging.n1n2_failure_txf_notif_uri) = ogs_strdup(__uRI); \
+    } while(0);
+#define AMF_SESS_CLEAR_PAGING_INFO(__sESS) \
+    do { \
+        (__sESS)->paging.ongoing = false; \
+        if ((__sESS)->paging.location) \
+            ogs_free((__sESS)->paging.location); \
+        ((__sESS)->paging.location) = NULL; \
+        if ((__sESS)->paging.n1n2_failure_txf_notif_uri) \
+            ogs_free((__sESS)->paging.n1n2_failure_txf_notif_uri); \
+        ((__sESS)->paging.n1n2_failure_txf_notif_uri) = NULL; \
+    } while(0);
+#define AMF_UE_CLEAR_PAGING_INFO(__aMF) \
+    do { \
+        amf_sess_t *sess = NULL; \
+        ogs_list_for_each(&((__aMF)->sess_list), sess) { \
+            AMF_SESS_CLEAR_PAGING_INFO(sess); \
         } \
     } while(0);
 
@@ -498,6 +530,7 @@ typedef struct amf_sess_s {
 
     /* Save Protocol Configuration Options from PGW */
     ogs_tlv_octet_t pgw_pco;
+
 } amf_sess_t;
 
 void amf_context_init(void);

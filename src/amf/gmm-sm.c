@@ -336,10 +336,30 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e)
         case AMF_TIMER_T3513:
             if (amf_ue->t3513.retry_count >=
                     amf_timer_cfg(AMF_TIMER_T3513)->max_count) {
+                amf_sess_t *sess = NULL;
+
                 /* Paging failed */
                 ogs_error("[%s] Paging failed. Stop", amf_ue->supi);
+
+                ogs_list_for_each(&amf_ue->sess_list, sess) {
+                    if (sess->paging.ongoing == true) {
+                        ogs_assert(sess->paging.location);
+                        ogs_assert(sess->paging.n1n2_failure_txf_notif_uri);
+                        amf_sess_sbi_discover_and_send(
+                                OpenAPI_nf_type_SMF, sess, 0,
+                                (void *)OpenAPI_n1_n2_message_transfer_cause_UE_NOT_REACHABLE_FOR_SESSION,
+                                amf_nsmf_callback_n1_n2_failure_notify);
+                    }
+                }
+
+                /* Clear Paging Info */
+                AMF_UE_CLEAR_PAGING_INFO(amf_ue);
+
+                /* Clear N2 Transfer */
                 AMF_UE_CLEAR_N2_TRANSFER(
                         amf_ue, pdu_session_resource_setup_request);
+
+                /* Clear t3513 Timers */
                 CLEAR_AMF_UE_TIMER(amf_ue->t3513);
 
             } else {

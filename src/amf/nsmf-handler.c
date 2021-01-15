@@ -193,7 +193,7 @@ int amf_nsmf_pdu_session_handle_update_sm_context(
                  * To Deliver N2 SM Content to gNB Temporarily,
                  * Store N2 SM Context in Session Context
                  */
-                AMF_SESS_SETUP_N2_TRANSFER(
+                AMF_SESS_STORE_N2_TRANSFER(
                         sess, pdu_session_resource_setup_request,
                         ogs_pkbuf_copy(n2smbuf));
 
@@ -251,7 +251,7 @@ int amf_nsmf_pdu_session_handle_update_sm_context(
                  * To Deliver N2 SM Content to gNB Temporarily,
                  * Store N2 SM Context in Session Context
                  */
-                AMF_SESS_SETUP_N2_TRANSFER(
+                AMF_SESS_STORE_N2_TRANSFER(
                         sess, path_switch_request_ack,
                         ogs_pkbuf_copy(n2smbuf));
 

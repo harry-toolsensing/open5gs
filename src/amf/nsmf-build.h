@@ -52,7 +52,7 @@ ogs_sbi_request_t *amf_nsmf_pdu_session_build_update_sm_context(
 ogs_sbi_request_t *amf_nsmf_pdu_session_build_release_sm_context(
         amf_sess_t *sess, void *data);
 
-ogs_sbi_request_t *amf_nsmf_callback_n1n2_failure_notify(
+ogs_sbi_request_t *amf_nsmf_callback_n1_n2_failure_notify(
         amf_sess_t *sess, void *data);
 
 #ifdef __cplusplus
