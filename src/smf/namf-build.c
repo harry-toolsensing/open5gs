@@ -22,7 +22,7 @@
 #include "ngap-build.h"
 
 ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
-        smf_sess_t *sess, smf_n1_n2_message_transfer_data_t *data)
+        smf_sess_t *sess, smf_n1_n2_message_transfer_param_t *param)
 {
     int i;
     smf_ue_t *smf_ue = NULL;
@@ -45,9 +45,9 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
     ogs_assert(smf_ue);
     ogs_assert(smf_ue->supi);
 
-    ogs_assert(data);
-    ogs_assert(data->state);
-    ogs_assert(data->n1smbuf || data->n2smbuf);
+    ogs_assert(param);
+    ogs_assert(param->state);
+    ogs_assert(param->n1smbuf || param->n2smbuf);
 
     memset(&message, 0, sizeof(message));
     message.h.method = (char *)OGS_SBI_HTTP_METHOD_POST;
@@ -62,7 +62,7 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
     memset(&N1N2MessageTransferReqData, 0, sizeof(N1N2MessageTransferReqData));
     N1N2MessageTransferReqData.pdu_session_id = sess->psi;
 
-    if (data->n1smbuf) {
+    if (param->n1smbuf) {
         N1N2MessageTransferReqData.n1_message_container = &n1MessageContainer;
 
         memset(&n1MessageContainer, 0, sizeof(n1MessageContainer));
@@ -72,7 +72,7 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
         memset(&n1MessageContent, 0, sizeof(n1MessageContent));
         n1MessageContent.content_id = (char *)OGS_SBI_CONTENT_5GNAS_SM_ID;
 
-        message.part[message.num_of_part].pkbuf = data->n1smbuf;
+        message.part[message.num_of_part].pkbuf = param->n1smbuf;
         message.part[message.num_of_part].content_id =
             (char *)OGS_SBI_CONTENT_5GNAS_SM_ID;
         message.part[message.num_of_part].content_type =
@@ -80,7 +80,7 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
         message.num_of_part++;
     }
 
-    if (data->n2smbuf) {
+    if (param->n2smbuf) {
         N1N2MessageTransferReqData.n2_info_container = &n2InfoContainer;
 
         memset(&n2InfoContainer, 0, sizeof(n2InfoContainer));
@@ -92,7 +92,7 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
         smInfo.n2_info_content = &n2InfoContent;
 
         memset(&n2InfoContent, 0, sizeof(n2InfoContent));
-        switch (data->state) {
+        switch (param->state) {
         case SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT:
         case SMF_NETWORK_TRIGGERED_SERVICE_REQUEST:
             n2InfoContent.ngap_ie_type = OpenAPI_ngap_ie_type_PDU_RES_SETUP_REQ;
@@ -102,7 +102,7 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
             n2InfoContent.ngap_ie_type = OpenAPI_ngap_ie_type_PDU_RES_MOD_REQ;
             break;
         default:
-            ogs_fatal("Unexpected state [%d]", data->state);
+            ogs_fatal("Unexpected state [%d]", param->state);
             ogs_assert_if_reached();
         }
         n2InfoContent.ngap_data = &ngapData;
@@ -110,7 +110,7 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
         memset(&ngapData, 0, sizeof(ngapData));
         ngapData.content_id = (char *)OGS_SBI_CONTENT_NGAP_SM_ID;
 
-        message.part[message.num_of_part].pkbuf = data->n2smbuf;
+        message.part[message.num_of_part].pkbuf = param->n2smbuf;
         message.part[message.num_of_part].content_id =
             (char *)OGS_SBI_CONTENT_NGAP_SM_ID;
         message.part[message.num_of_part].content_type =

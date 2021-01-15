@@ -102,8 +102,7 @@ void smf_5gc_n4_handle_session_establishment_response(
 {
     int i;
 
-    ogs_pkbuf_t *n1smbuf = NULL;
-    ogs_pkbuf_t *n2smbuf = NULL;
+    smf_n1_n2_message_transfer_param_t param;
     ogs_sbi_stream_t *stream = NULL;
 
     uint8_t pfcp_cause_value = OGS_PFCP_CAUSE_REQUEST_ACCEPTED;
@@ -190,14 +189,15 @@ void smf_5gc_n4_handle_session_establishment_response(
     ogs_assert(up_f_seid);
     sess->upf_n4_seid = be64toh(up_f_seid->seid);
 
-    n1smbuf = gsm_build_pdu_session_establishment_accept(sess);
-    ogs_assert(n1smbuf);
-    n2smbuf = ngap_build_pdu_session_resource_setup_request_transfer(sess);
-    ogs_assert(n2smbuf);
+    memset(&param, 0, sizeof(param));
+    param.state = SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT;
+    param.n1smbuf = gsm_build_pdu_session_establishment_accept(sess);
+    ogs_assert(param.n1smbuf);
+    param.n2smbuf = ngap_build_pdu_session_resource_setup_request_transfer(
+            sess);
+    ogs_assert(param.n2smbuf);
 
-    smf_namf_comm_send_n1_n2_message_transfer(
-            sess, SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT,
-            n1smbuf, n2smbuf);
+    smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
 }
 
 void smf_5gc_n4_handle_session_modification_response(
@@ -315,19 +315,18 @@ void smf_5gc_n4_handle_session_modification_response(
         smf_sbi_send_sm_context_updated_data_up_cnx_state(
                 sess, stream, OpenAPI_up_cnx_state_DEACTIVATED);
     } else if (flags & OGS_PFCP_MODIFY_CREATE) {
-        ogs_pkbuf_t *n1smbuf = NULL, *n2smbuf = NULL;
+        smf_n1_n2_message_transfer_param_t param;
 
-        ogs_assert(qos_flow);
-        n1smbuf = gsm_build_qos_flow_modification_command(
+        memset(&param, 0, sizeof(param));
+        param.state = SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION;
+        param.n1smbuf = gsm_build_qos_flow_modification_command(
                 qos_flow, OGS_NAS_PROCEDURE_TRANSACTION_IDENTITY_UNASSIGNED);
-        ogs_assert(n1smbuf);
-        n2smbuf = ngap_build_qos_flow_resource_modify_request_transfer(
+        ogs_assert(param.n1smbuf);
+        param.n2smbuf = ngap_build_qos_flow_resource_modify_request_transfer(
                 qos_flow);
-        ogs_assert(n2smbuf);
+        ogs_assert(param.n2smbuf);
 
-        smf_namf_comm_send_n1_n2_message_transfer(
-                sess, SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION,
-                n1smbuf, n2smbuf);
+        smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
     }
 }
 
@@ -664,8 +663,6 @@ void smf_n4_handle_session_report_request(
     uint8_t cause_value = 0;
     uint16_t pdr_id = 0;
 
-    ogs_pkbuf_t *n2smbuf = NULL;
-
     ogs_assert(pfcp_xact);
     ogs_assert(pfcp_req);
 
@@ -758,13 +755,16 @@ void smf_n4_handle_session_report_request(
                 pfcp_xact, sess, OGS_PFCP_CAUSE_REQUEST_ACCEPTED);
 
         if (sess->ue_requested_pdu_session_establishment_done == true) {
-            n2smbuf = ngap_build_pdu_session_resource_setup_request_transfer(
-                    sess);
-            ogs_assert(n2smbuf);
+            smf_n1_n2_message_transfer_param_t param;
 
-            smf_namf_comm_send_n1_n2_message_transfer(
-                    sess, SMF_NETWORK_TRIGGERED_SERVICE_REQUEST,
-                    NULL, n2smbuf);
+            memset(&param, 0, sizeof(param));
+            param.state = SMF_NETWORK_TRIGGERED_SERVICE_REQUEST;
+            param.n2smbuf =
+                ngap_build_pdu_session_resource_setup_request_transfer(
+                        sess);
+            ogs_assert(param.n2smbuf);
+
+            smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
         }
 
     } else if (report_type.error_indication_report) {
