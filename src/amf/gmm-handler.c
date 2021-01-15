@@ -349,10 +349,8 @@ int gmm_handle_service_request(amf_ue_t *amf_ue,
     /*
      * REGISTRATION_REQUEST
      * SERVICE_REQUEST
-     *   Clear N2 Transfer
      *   Clear Timer and Message
      */
-    AMF_UE_CLEAR_N2_TRANSFER(amf_ue, pdu_session_resource_setup_request);
     CLEAR_AMF_UE_ALL_TIMERS(amf_ue);
 
     if (SECURITY_CONTEXT_IS_VALID(amf_ue)) {
