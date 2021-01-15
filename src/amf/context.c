@@ -1179,6 +1179,9 @@ void amf_ue_remove(amf_ue_t *amf_ue)
     /* Clear Transparent Container */
     OGS_ASN_CLEAR_DATA(&amf_ue->container);
 
+    /* Clear N2 Transfer */
+    AMF_UE_CLEAR_N2_TRANSFER(amf_ue, pdu_session_resource_setup_request);
+
     /* Delete All Timers */
     CLEAR_AMF_UE_ALL_TIMERS(amf_ue);
     ogs_timer_delete(amf_ue->t3513.timer);

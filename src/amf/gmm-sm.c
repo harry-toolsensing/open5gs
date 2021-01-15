@@ -64,6 +64,7 @@ void gmm_state_de_registered(ogs_fsm_t *s, amf_event_t *e)
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
+        AMF_UE_CLEAR_N2_TRANSFER(amf_ue, pdu_session_resource_setup_request);
         CLEAR_AMF_UE_ALL_TIMERS(amf_ue);
         break;
     case OGS_FSM_EXIT_SIG:
@@ -336,7 +337,7 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e)
             if (amf_ue->t3513.retry_count >=
                     amf_timer_cfg(AMF_TIMER_T3513)->max_count) {
                 /* Paging failed */
-                ogs_warn("[%s] Paging failed. Stop", amf_ue->supi);
+                ogs_error("[%s] Paging failed. Stop", amf_ue->supi);
                 CLEAR_AMF_UE_TIMER(amf_ue->t3513);
 
             } else {
@@ -1060,6 +1061,7 @@ void gmm_state_exception(ogs_fsm_t *s, amf_event_t *e)
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
+        AMF_UE_CLEAR_N2_TRANSFER(amf_ue, pdu_session_resource_setup_request);
         CLEAR_AMF_UE_ALL_TIMERS(amf_ue);
 
         amf_sbi_send_release_all_sessions(

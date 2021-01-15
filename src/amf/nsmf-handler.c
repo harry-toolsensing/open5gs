@@ -193,40 +193,17 @@ int amf_nsmf_pdu_session_handle_update_sm_context(
                  * To Deliver N2 SM Content to gNB Temporarily,
                  * Store N2 SM Context in Session Context
                  */
-                if (sess->transfer.pdu_session_resource_setup_request) {
-                    /*
-                     * It should not be reached this way.
-                     * If the problem occurred, free the old n2smbuf
-                     */
-                    ogs_error("[%s:%d] N2 SM Content is duplicated",
-                            amf_ue->supi, sess->psi);
-                    ogs_pkbuf_free(
-                            sess->transfer.pdu_session_resource_setup_request);
-                }
-                /*
-                 * NOTE : The pkbuf created in the SBI message will be removed
-                 *        from ogs_sbi_message_free().
-                 *        So it must be copied and push a event queue.
-                 */
-                sess->transfer.pdu_session_resource_setup_request =
-                    ogs_pkbuf_copy(n2smbuf);
-                ogs_assert(sess->transfer.pdu_session_resource_setup_request);
+                AMF_SESS_SETUP_N2_TRANSFER(
+                        sess, pdu_session_resource_setup_request,
+                        ogs_pkbuf_copy(n2smbuf));
 
                 if (SESSION_SYNC_DONE(amf_ue, state)) {
                     nas_5gs_send_accept(amf_ue);
 
-                /*
-                 * After sending accept message, N2 SM context is freed
-                 * For checking memory, NULL pointer should be set to n2smbuf.
-                 */
-                    ogs_list_for_each(&amf_ue->sess_list, sess) {
-                        if (sess->transfer.pdu_session_resource_setup_request) {
-                            ogs_pkbuf_free(sess->
-                                transfer.pdu_session_resource_setup_request);
-                            sess->transfer.pdu_session_resource_setup_request =
-                                NULL;
-                        }
-                    }
+                    /* After sending accept message, N2 SM context is freed */
+                    AMF_UE_CLEAR_N2_TRANSFER(
+                            amf_ue, pdu_session_resource_setup_request);
+
                 }
                 break;
 
@@ -274,38 +251,15 @@ int amf_nsmf_pdu_session_handle_update_sm_context(
                  * To Deliver N2 SM Content to gNB Temporarily,
                  * Store N2 SM Context in Session Context
                  */
-                if (sess->transfer.path_switch_request_ack) {
-                    /*
-                     * It should not be reached this way.
-                     * If the problem occurred, free the old n2smbuf
-                     */
-                    ogs_error("[%s:%d] N2 SM Content is duplicated",
-                            amf_ue->supi, sess->psi);
-                    ogs_pkbuf_free(sess->transfer.path_switch_request_ack);
-                }
-                /*
-                 * NOTE : The pkbuf created in the SBI message will be removed
-                 *        from ogs_sbi_message_free().
-                 *        So it must be copied and push a event queue.
-                 */
-                sess->transfer.path_switch_request_ack =
-                    ogs_pkbuf_copy(n2smbuf);
-                ogs_assert(sess->transfer.path_switch_request_ack);
+                AMF_SESS_SETUP_N2_TRANSFER(
+                        sess, path_switch_request_ack,
+                        ogs_pkbuf_copy(n2smbuf));
 
                 if (SESSION_SYNC_DONE(amf_ue, state)) {
                     ngap_send_path_switch_ack(sess);
 
-                /*
-                 * After sending ack message, N2 SM context is freed
-                 * For checking memory, NULL pointer should be set to n2smbuf.
-                 */
-                    ogs_list_for_each(&amf_ue->sess_list, sess) {
-                        if (sess->transfer.path_switch_request_ack) {
-                            ogs_pkbuf_free(
-                                    sess->transfer.path_switch_request_ack);
-                            sess->transfer.path_switch_request_ack = NULL;
-                        }
-                    }
+                    /* After sending ack message, N2 SM context is freed */
+                    AMF_UE_CLEAR_N2_TRANSFER(amf_ue, path_switch_request_ack);
                 }
                 break;
 

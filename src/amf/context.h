@@ -450,6 +450,30 @@ typedef struct amf_sess_s {
         ogs_pkbuf_t *path_switch_request_ack;
     } transfer;
 
+#define AMF_SESS_SETUP_N2_TRANSFER(__sESS, __n2Type, __n2Buf) \
+    do { \
+        ogs_assert(__sESS); \
+        ogs_assert((__sESS)->amf_ue); \
+        if (sess->transfer.__n2Type) { \
+            ogs_error("[%s:%d] N2 SM Content is duplicated", \
+                    ((__sESS)->amf_ue)->supi, sess->psi); \
+            ogs_pkbuf_free(sess->transfer.__n2Type); \
+        } \
+        sess->transfer.__n2Type = __n2Buf; \
+        ogs_assert(sess->transfer.__n2Type); \
+    } while(0);
+
+#define AMF_UE_CLEAR_N2_TRANSFER(__aMF, __n2Type) \
+    do { \
+        amf_sess_t *sess = NULL; \
+        ogs_list_for_each(&((__aMF)->sess_list), sess) { \
+            if (sess->transfer.__n2Type) { \
+                ogs_pkbuf_free(sess->transfer.__n2Type); \
+                sess->transfer.__n2Type = NULL; \
+            } \
+        } \
+    } while(0);
+
     /* last payload for sending back to the UE */
     uint8_t         payload_container_type;
     ogs_pkbuf_t     *payload_container;
