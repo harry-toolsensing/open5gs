@@ -390,6 +390,9 @@ struct amf_ue_s {
     /* NGAP Transparent Container */
     OCTET_STRING_t  container;
 
+    /* Last Received n1-n2-trasfer-failure-notification-uri from SMF */
+    char *n1n2_failure_txf_notif_uri;
+
     ogs_list_t      sess_list;
 };
 

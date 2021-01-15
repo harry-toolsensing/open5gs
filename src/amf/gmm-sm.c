@@ -338,6 +338,8 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e)
                     amf_timer_cfg(AMF_TIMER_T3513)->max_count) {
                 /* Paging failed */
                 ogs_error("[%s] Paging failed. Stop", amf_ue->supi);
+                AMF_UE_CLEAR_N2_TRANSFER(
+                        amf_ue, pdu_session_resource_setup_request);
                 CLEAR_AMF_UE_TIMER(amf_ue->t3513);
 
             } else {

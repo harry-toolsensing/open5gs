@@ -757,14 +757,31 @@ void smf_n4_handle_session_report_request(
         if (sess->ue_requested_pdu_session_establishment_done == true) {
             smf_n1_n2_message_transfer_param_t param;
 
+            ogs_sbi_server_t *server = NULL;
+            ogs_sbi_header_t header;
+
             memset(&param, 0, sizeof(param));
             param.state = SMF_NETWORK_TRIGGERED_SERVICE_REQUEST;
             param.n2smbuf =
-                ngap_build_pdu_session_resource_setup_request_transfer(
-                        sess);
+                ngap_build_pdu_session_resource_setup_request_transfer(sess);
             ogs_assert(param.n2smbuf);
 
+            server = ogs_list_first(&ogs_sbi_self()->server_list);
+            ogs_assert(server);
+
+            memset(&header, 0, sizeof(header));
+            header.service.name = (char *)OGS_SBI_SERVICE_NAME_NSMF_CALLBACK;
+            header.api.version = (char *)OGS_SBI_API_V1;
+            header.resource.component[0] =
+                    (char *)OGS_SBI_RESOURCE_NAME_N1N2_FAILURE_NOTIFY;
+            header.resource.component[1] = sess->sm_context_ref;
+            param.n1n2_failure_txf_notif_uri =
+                ogs_sbi_server_uri(server, &header);
+            ogs_assert(param.n1n2_failure_txf_notif_uri);
+
             smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+
+            ogs_free(param.n1n2_failure_txf_notif_uri);
         }
 
     } else if (report_type.error_indication_report) {

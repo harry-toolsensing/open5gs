@@ -1181,6 +1181,8 @@ void amf_ue_remove(amf_ue_t *amf_ue)
 
     /* Clear N2 Transfer */
     AMF_UE_CLEAR_N2_TRANSFER(amf_ue, pdu_session_resource_setup_request);
+    if (amf_ue->n1n2_failure_txf_notif_uri)
+        ogs_free(amf_ue->n1n2_failure_txf_notif_uri);
 
     /* Delete All Timers */
     CLEAR_AMF_UE_ALL_TIMERS(amf_ue);

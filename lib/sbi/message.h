@@ -125,6 +125,7 @@ extern "C" {
 
 #define OGS_SBI_SERVICE_NAME_NSMF_CALLBACK          "nsmf-callback"
 #define OGS_SBI_RESOURCE_NAME_SM_POLICY_NOTIFY      "sm-policy-notify"
+#define OGS_SBI_RESOURCE_NAME_N1N2_FAILURE_NOTIFY   "n1n2-failure-notify"
 
 #define OGS_SBI_SERVICE_NAME_NAMF_COMM              "namf-comm"
 #define OGS_SBI_RESOURCE_NAME_UE_CONTEXTS           "ue-contexts"

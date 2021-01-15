@@ -307,6 +307,7 @@ static void test1_func(abts_case *tc, void *data)
             NGAP_ProcedureCode_id_Paging,
             test_ue->ngap_procedure_code);
 
+#if 0
     /*
      * Send InitialUEMessage +
      * Service request
@@ -351,6 +352,7 @@ static void test1_func(abts_case *tc, void *data)
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
+#endif
 
 #if 0
     /* Send GTP-U ICMP Packet */

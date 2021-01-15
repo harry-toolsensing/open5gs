@@ -229,8 +229,18 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
 
                 ogs_fatal("CM_IDLE");
 
+                /* Store N2 Transfer message */
                 AMF_SESS_SETUP_N2_TRANSFER(
                         sess, pdu_session_resource_setup_request, n2buf);
+
+                /* Store N1N2 Trasfer Failure Notification URI */
+                if (N1N2MessageTransferReqData->n1n2_failure_txf_notif_uri) {
+                    if (amf_ue->n1n2_failure_txf_notif_uri)
+                        ogs_free(amf_ue->n1n2_failure_txf_notif_uri);
+
+                    amf_ue->n1n2_failure_txf_notif_uri = ogs_strdup(
+                        N1N2MessageTransferReqData->n1n2_failure_txf_notif_uri);
+                }
 
                 ngap_send_paging(amf_ue);
 
@@ -242,8 +252,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                 ogs_assert(server);
 
                 memset(&header, 0, sizeof(header));
-                header.service.name =
-                    (char *)OGS_SBI_SERVICE_NAME_NAMF_COMM;
+                header.service.name = (char *)OGS_SBI_SERVICE_NAME_NAMF_COMM;
                 header.api.version = (char *)OGS_SBI_API_V1;
                 header.resource.component[0] =
                     (char *)OGS_SBI_RESOURCE_NAME_UE_CONTEXTS;
