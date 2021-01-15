@@ -28,7 +28,6 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
         ogs_sbi_stream_t *stream, ogs_sbi_message_t *recvmsg)
 {
     int status;
-    OpenAPI_n1_n2_message_transfer_cause_e cause;
 
     amf_ue_t *amf_ue = NULL;
     amf_sess_t *sess = NULL;
@@ -160,8 +159,15 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
         return OGS_ERROR;
     }
 
+    memset(&sendmsg, 0, sizeof(sendmsg));
+
     status = OGS_SBI_HTTP_STATUS_OK;
-    cause = OpenAPI_n1_n2_message_transfer_cause_N1_N2_TRANSFER_INITIATED;
+
+    memset(&N1N2MessageTransferRspData, 0, sizeof(N1N2MessageTransferRspData));
+    N1N2MessageTransferRspData.cause =
+        OpenAPI_n1_n2_message_transfer_cause_N1_N2_TRANSFER_INITIATED;
+
+    sendmsg.N1N2MessageTransferRspData = &N1N2MessageTransferRspData;
 
     switch (n2InfoContent->ngap_ie_type) {
     case OpenAPI_ngap_ie_type_PDU_RES_SETUP_REQ:
@@ -206,10 +212,8 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                  * sm-context-ref is created in [1-CLIENT].
                  * So, the PDU session establishment accpet can be transmitted.
                  */
-                if (nas_5gs_send_to_gnb(amf_ue, ngapbuf) != OGS_OK) {
+                if (nas_5gs_send_to_gnb(amf_ue, ngapbuf) != OGS_OK)
                     ogs_error("nas_5gs_send_to_gnb() failed");
-                    status = OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR;
-                }
             } else {
                 sess->pdu_session_establishment_accept = ngapbuf;
             }
@@ -220,6 +224,8 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
              *********************************************/
 
             if (CM_IDLE(amf_ue)) {
+                ogs_sbi_server_t *server = NULL;
+                ogs_sbi_header_t header;
 
                 ogs_fatal("CM_IDLE");
 
@@ -227,6 +233,26 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                         sess, pdu_session_resource_setup_request, n2buf);
 
                 ngap_send_paging(amf_ue);
+
+                status = OGS_SBI_HTTP_STATUS_ACCEPTED;
+                N1N2MessageTransferRspData.cause =
+                    OpenAPI_n1_n2_message_transfer_cause_ATTEMPTING_TO_REACH_UE;
+
+                server = ogs_sbi_server_from_stream(stream);
+                ogs_assert(server);
+
+                memset(&header, 0, sizeof(header));
+                header.service.name =
+                    (char *)OGS_SBI_SERVICE_NAME_NAMF_COMM;
+                header.api.version = (char *)OGS_SBI_API_V1;
+                header.resource.component[0] =
+                    (char *)OGS_SBI_RESOURCE_NAME_UE_CONTEXTS;
+                header.resource.component[1] = amf_ue->supi;
+                header.resource.component[2] =
+                    (char *)OGS_SBI_RESOURCE_NAME_N1_N2_MESSAGES;
+                header.resource.component[3] = sess->sm_context_ref;
+
+                sendmsg.http.location = ogs_sbi_server_uri(server, &header);
 
             } else if (CM_CONNECTED(amf_ue)) {
                 ogs_error("CM_CONNECTED");
@@ -261,10 +287,8 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                     sess, gmmbuf, n2buf);
             ogs_assert(ngapbuf);
 
-            if (nas_5gs_send_to_gnb(amf_ue, ngapbuf) != OGS_OK) {
+            if (nas_5gs_send_to_gnb(amf_ue, ngapbuf) != OGS_OK)
                 ogs_error("nas_5gs_send_to_gnb() failed");
-                status = OGS_SBI_HTTP_STATUS_INTERNAL_SERVER_ERROR;
-            }
 
         } else {
             ogs_fatal("[%s] Invalid AMF-UE state", amf_ue->supi);
@@ -279,19 +303,12 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
         ogs_assert_if_reached();
     }
 
-    memset(&sendmsg, 0, sizeof(sendmsg));
-
-    if (status == OGS_SBI_HTTP_STATUS_OK) {
-        memset(&N1N2MessageTransferRspData, 0,
-                sizeof(N1N2MessageTransferRspData));
-        N1N2MessageTransferRspData.cause = cause;
-
-        sendmsg.N1N2MessageTransferRspData = &N1N2MessageTransferRspData;
-    }
-
     response = ogs_sbi_build_response(&sendmsg, status);
     ogs_assert(response);
     ogs_sbi_server_send_response(stream, response);
+
+    if (sendmsg.http.location)
+        ogs_free(sendmsg.http.location);
 
     return OGS_OK;
 }
