@@ -356,22 +356,25 @@ void ngap_send_paging(amf_ue_t *amf_ue)
             amf_timer_cfg(AMF_TIMER_T3513)->duration);
 }
 
-void ngap_send_pdu_resource_setup_request(amf_ue_t *amf_ue)
+void ngap_send_pdu_resource_setup_request(
+        amf_sess_t *sess, ogs_pkbuf_t *n2smbuf)
 {
     int rv;
     ran_ue_t *ran_ue = NULL;
+    amf_ue_t *amf_ue = NULL;
 
     ogs_pkbuf_t *ngapbuf = NULL;
 
+    ogs_assert(sess);
+    amf_ue = sess->amf_ue;
     ogs_assert(amf_ue);
     ran_ue = ran_ue_cycle(amf_ue->ran_ue);
     ogs_assert(ran_ue);
 
-    ogs_assert(SESSION_TRANSFER_NEEDED(amf_ue));
-
     if (ran_ue->ue_context_requested == true &&
         ran_ue->initial_context_setup_request_sent == false) {
-        ngapbuf = ngap_ue_build_initial_context_setup_request(amf_ue, NULL);
+        ngapbuf = ngap_sess_build_initial_context_setup_request(
+                sess, NULL, n2smbuf);
         ogs_expect_or_return(ngapbuf);
 
         rv = nas_5gs_send_to_gnb(amf_ue, ngapbuf);
@@ -379,8 +382,8 @@ void ngap_send_pdu_resource_setup_request(amf_ue_t *amf_ue)
 
         ran_ue->initial_context_setup_request_sent = true;
     } else {
-        ngapbuf = ngap_ue_build_pdu_session_resource_setup_request(
-                amf_ue, NULL);
+        ngapbuf = ngap_sess_build_pdu_session_resource_setup_request(
+                sess, NULL, n2smbuf);
         ogs_expect_or_return(ngapbuf);
 
         rv = nas_5gs_send_to_gnb(amf_ue, ngapbuf);

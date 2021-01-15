@@ -219,31 +219,32 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
              * 4.2.3.3 Network Triggered Service Request *
              *********************************************/
 
-            /*
-             * To Deliver N2 SM Content to gNB Temporarily,
-             * Store N2 SM Context in Session Context
-             */
-            if (sess->transfer.pdu_session_resource_setup_request) {
-                /*
-                 * It should not be reached this way.
-                 * If the problem occurred, free the old n2buf
-                 */
-                ogs_error("[%s:%d] N2 SM Content is duplicated",
-                        amf_ue->supi, sess->psi);
-                ogs_pkbuf_free(
-                        sess->transfer.pdu_session_resource_setup_request);
-            }
-            /*
-             * NOTE : The pkbuf created in the SBI message will be removed
-             *        from ogs_sbi_message_free().
-             *        So it must be copied and push a event queue.
-             */
-            sess->transfer.pdu_session_resource_setup_request = n2buf;
-            ogs_assert(sess->transfer.pdu_session_resource_setup_request);
-
             if (CM_IDLE(amf_ue)) {
 
                 ogs_fatal("CM_IDLE");
+
+                /*
+                 * To Deliver N2 SM Content to gNB Temporarily,
+                 * Store N2 SM Context in Session Context
+                 */
+                if (sess->transfer.pdu_session_resource_setup_request) {
+                    /*
+                     * It should not be reached this way.
+                     * If the problem occurred, free the old n2buf
+                     */
+                    ogs_error("[%s:%d] N2 SM Content is duplicated",
+                            amf_ue->supi, sess->psi);
+                    ogs_pkbuf_free(
+                            sess->transfer.pdu_session_resource_setup_request);
+                }
+                /*
+                 * NOTE : The pkbuf created in the SBI message will be removed
+                 *        from ogs_sbi_message_free().
+                 *        So it must be copied and push a event queue.
+                 */
+                sess->transfer.pdu_session_resource_setup_request = n2buf;
+                ogs_assert(sess->transfer.pdu_session_resource_setup_request);
+
 #if 0
                 ngap_send_paging(amf_ue);
 #endif
@@ -253,18 +254,8 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                 sess->transfer.pdu_session_resource_setup_request = NULL;
 
             } else if (CM_CONNECTED(amf_ue)) {
-
                 ogs_error("CM_CONNECTED");
-
-                ngap_send_pdu_resource_setup_request(amf_ue);
-
-                /*
-                 * After sending N2 message, N2 SM context is freed
-                 * For checking memory, NULL pointer should be set to n2smbuf.
-                 */
-                ogs_pkbuf_free(sess->
-                    transfer.pdu_session_resource_setup_request);
-                sess->transfer.pdu_session_resource_setup_request = NULL;
+                ngap_send_pdu_resource_setup_request(sess, n2buf);
 
             } else {
 

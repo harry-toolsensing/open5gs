@@ -657,7 +657,7 @@ ogs_pkbuf_t *ngap_ue_build_initial_context_setup_request(
 }
 
 ogs_pkbuf_t *ngap_sess_build_initial_context_setup_request(
-            amf_sess_t *sess, ogs_pkbuf_t *n1smbuf, ogs_pkbuf_t *n2smbuf)
+            amf_sess_t *sess, ogs_pkbuf_t *gmmbuf, ogs_pkbuf_t *n2smbuf)
 {
     int i, j;
 
@@ -750,11 +750,13 @@ ogs_pkbuf_t *ngap_sess_build_initial_context_setup_request(
 
     GUAMI = &ie->value.choice.GUAMI;
 
-    if (n1smbuf && n2smbuf) {
+    if (gmmbuf || n2smbuf) {
         NGAP_NAS_PDU_t *nAS_PDU = NULL;
         OCTET_STRING_t *transfer = NULL;
         NGAP_S_NSSAI_t *s_NSSAI = NULL;
         NGAP_SST_t *sST = NULL;
+
+        ogs_assert(n2smbuf);
 
         ie = CALLOC(1, sizeof(NGAP_InitialContextSetupRequestIEs_t));
         ASN_SEQUENCE_ADD(&InitialContextSetupRequest->protocolIEs, ie);
@@ -769,13 +771,15 @@ ogs_pkbuf_t *ngap_sess_build_initial_context_setup_request(
                 sizeof(struct NGAP_PDUSessionResourceSetupItemCxtReq));
         ASN_SEQUENCE_ADD(&PDUSessionList->list, PDUSessionItem);
 
-        PDUSessionItem->nAS_PDU = nAS_PDU = CALLOC(1, sizeof(*nAS_PDU));
-        ogs_assert(nAS_PDU);
+        if (gmmbuf) {
+            PDUSessionItem->nAS_PDU = nAS_PDU = CALLOC(1, sizeof(*nAS_PDU));
+            ogs_assert(nAS_PDU);
 
-        nAS_PDU->size = n1smbuf->len;
-        nAS_PDU->buf = CALLOC(nAS_PDU->size, sizeof(uint8_t));
-        memcpy(nAS_PDU->buf, n1smbuf->data, nAS_PDU->size);
-        ogs_pkbuf_free(n1smbuf);
+            nAS_PDU->size = gmmbuf->len;
+            nAS_PDU->buf = CALLOC(nAS_PDU->size, sizeof(uint8_t));
+            memcpy(nAS_PDU->buf, gmmbuf->data, nAS_PDU->size);
+            ogs_pkbuf_free(gmmbuf);
+        }
 
         PDUSessionItem->pDUSessionID = sess->psi;
 
@@ -1299,7 +1303,6 @@ ogs_pkbuf_t *ngap_sess_build_pdu_session_resource_setup_request(
     NGAP_SST_t *sST = NULL;
     OCTET_STRING_t *transfer = NULL;
 
-    ogs_assert(gmmbuf);
     ogs_assert(n2smbuf);
     ogs_assert(sess);
 
@@ -1363,12 +1366,15 @@ ogs_pkbuf_t *ngap_sess_build_pdu_session_resource_setup_request(
 
     PDUSessionItem->pDUSessionID = sess->psi;
 
-    PDUSessionItem->pDUSessionNAS_PDU =
-        pDUSessionNAS_PDU = CALLOC(1, sizeof(NGAP_NAS_PDU_t));
-    pDUSessionNAS_PDU->size = gmmbuf->len;
-    pDUSessionNAS_PDU->buf = CALLOC(pDUSessionNAS_PDU->size, sizeof(uint8_t));
-    memcpy(pDUSessionNAS_PDU->buf, gmmbuf->data, pDUSessionNAS_PDU->size);
-    ogs_pkbuf_free(gmmbuf);
+    if (gmmbuf) {
+        PDUSessionItem->pDUSessionNAS_PDU =
+            pDUSessionNAS_PDU = CALLOC(1, sizeof(NGAP_NAS_PDU_t));
+        pDUSessionNAS_PDU->size = gmmbuf->len;
+        pDUSessionNAS_PDU->buf =
+            CALLOC(pDUSessionNAS_PDU->size, sizeof(uint8_t));
+        memcpy(pDUSessionNAS_PDU->buf, gmmbuf->data, pDUSessionNAS_PDU->size);
+        ogs_pkbuf_free(gmmbuf);
+    }
 
     s_NSSAI = &PDUSessionItem->s_NSSAI;
     sST = &s_NSSAI->sST;
