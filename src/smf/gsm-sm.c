@@ -184,13 +184,6 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NAMF_COMM)
             SWITCH(sbi_message->h.resource.component[0])
             CASE(OGS_SBI_RESOURCE_NAME_UE_CONTEXTS)
-                if (sbi_message->res_status != OGS_SBI_HTTP_STATUS_OK &&
-                    sbi_message->res_status != OGS_SBI_HTTP_STATUS_ACCEPTED) {
-                    ogs_error("[%s:%d] HTTP response error [%d]",
-                        smf_ue->supi, sess->psi, sbi_message->res_status);
-                    break;
-                }
-
                 smf_namf_comm_handler_n1_n2_message_transfer(
                         sess, e->sbi.state, sbi_message);
                 break;
@@ -206,7 +199,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
         DEFAULT
             ogs_error("[%s:%d] Invalid API name [%s]",
                     smf_ue->supi, sess->psi, sbi_message->h.service.name);
-
+            ogs_assert_if_reached();
         END
         break;
 
@@ -269,9 +262,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
             ogs_sbi_server_send_error(stream,
                     OGS_SBI_HTTP_STATUS_BAD_REQUEST, NULL, strerror, NULL);
             ogs_free(strerror);
-            break;
         }
-
         break;
 
     case SMF_EVT_NGAP_MESSAGE:
@@ -323,12 +314,10 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
         default:
             ogs_error("Unknown message[%d]", e->ngap.type);
         }
-
         break;
 
     default:
         ogs_error("Unknown event [%s]", smf_event_get_name(e));
-        break;
     }
 }
 

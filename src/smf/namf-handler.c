@@ -24,21 +24,44 @@
 bool smf_namf_comm_handler_n1_n2_message_transfer(
         smf_sess_t *sess, int state, ogs_sbi_message_t *recvmsg)
 {
+    smf_ue_t *smf_ue = NULL;
+
     ogs_assert(sess);
+    smf_ue = sess->smf_ue;
+    ogs_assert(smf_ue);
     ogs_assert(state);
     ogs_assert(recvmsg);
 
     switch (state) {
     case SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT:
-        smf_qos_flow_binding(sess, NULL);
+        if (recvmsg->res_status == OGS_SBI_HTTP_STATUS_OK) {
+            smf_qos_flow_binding(sess, NULL);
+        } else {
+            ogs_error("[%s:%d] HTTP response error [%d]",
+                smf_ue->supi, sess->psi, recvmsg->res_status);
+        }
         break;
 
     case SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION:
-        /* Nothing */
+        if (recvmsg->res_status == OGS_SBI_HTTP_STATUS_OK) {
+            /* Nothing */
+        } else {
+            ogs_error("[%s:%d] HTTP response error [%d]",
+                smf_ue->supi, sess->psi, recvmsg->res_status);
+        }
         break;
 
     case SMF_NETWORK_TRIGGERED_SERVICE_REQUEST:
-        /* Nothing */
+        if (recvmsg->res_status == OGS_SBI_HTTP_STATUS_OK) {
+            ogs_fatal("OK");
+            /* Nothing */
+        } else if (recvmsg->res_status == OGS_SBI_HTTP_STATUS_ACCEPTED) {
+            ogs_error("ACCEPT");
+            /* Nothing */
+        } else {
+            ogs_error("[%s:%d] HTTP response error [%d]",
+                smf_ue->supi, sess->psi, recvmsg->res_status);
+        }
         break;
 
     default:

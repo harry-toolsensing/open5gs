@@ -82,6 +82,7 @@ typedef struct smf_context_s {
     ogs_hash_t      *imsi_hash;     /* hash table (IMSI) */
     ogs_hash_t      *ipv4_hash;     /* hash table (IPv4 Address) */
     ogs_hash_t      *ipv6_hash;     /* hash table (IPv6 Address) */
+    ogs_hash_t      *n1n2message_hash; /* hash table (N1N2Message Location) */
 
     uint16_t        mtu;            /* MTU to advertise in PCO */
 
@@ -284,7 +285,11 @@ typedef struct smf_sess_s {
     ogs_pcc_rule_t  pcc_rule[OGS_MAX_NUM_OF_PCC_RULE]; /* Saved from Gx */
     int             num_of_pcc_rule;
 
-    bool ue_requested_pdu_session_establishment_done;
+    /* Paging */
+    struct {
+        bool ue_requested_pdu_session_establishment_done;
+        char *n1n2message_location;
+    } paging;
 
     /* Release Holding timer of SMF session context */
     ogs_timer_t     *t_release_holding;
@@ -318,6 +323,8 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi);
 
 void smf_sess_select_upf(smf_sess_t *sess);
 void smf_sess_set_ue_ip(smf_sess_t *sess);
+void smf_sess_set_paging_n1n2message_location(
+        smf_sess_t *sess, char *n1n2message_location);
 
 void smf_sess_remove(smf_sess_t *sess);
 void smf_sess_remove_all(smf_ue_t *smf_ue);
@@ -330,6 +337,8 @@ smf_sess_t *smf_sess_find_by_psi(smf_ue_t *smf_ue, uint8_t psi);
 smf_sess_t *smf_sess_find_by_sm_context_ref(char *sm_context_ref);
 smf_sess_t *smf_sess_find_by_ipv4(uint32_t addr);
 smf_sess_t *smf_sess_find_by_ipv6(uint32_t *addr6);
+smf_sess_t *smf_sess_find_by_paging_n1n2message_location(
+        char *n1n2message_location);
 
 smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess);
 smf_bearer_t *smf_qos_flow_find_by_qfi(smf_sess_t *sess, uint8_t qfi);

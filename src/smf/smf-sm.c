@@ -199,8 +199,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
                         sess, gx_message, gtp_xact);
                 break;
             default:
-                ogs_error("Not implemented(%d)",
-                        gx_message->cc_request_type);
+                ogs_error("Not implemented(%d)", gx_message->cc_request_type);
                 break;
             }
 

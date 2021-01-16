@@ -75,6 +75,7 @@ void smf_context_init(void)
     self.imsi_hash = ogs_hash_make();
     self.ipv4_hash = ogs_hash_make();
     self.ipv6_hash = ogs_hash_make();
+    self.n1n2message_hash = ogs_hash_make();
 
     context_initialized = 1;
 }
@@ -93,6 +94,8 @@ void smf_context_final(void)
     ogs_hash_destroy(self.ipv4_hash);
     ogs_assert(self.ipv6_hash);
     ogs_hash_destroy(self.ipv6_hash);
+    ogs_assert(self.n1n2message_hash);
+    ogs_hash_destroy(self.n1n2message_hash);
 
     ogs_pool_final(&smf_ue_pool);
     ogs_pool_final(&smf_bearer_pool);
@@ -1011,6 +1014,29 @@ void smf_sess_set_ue_ip(smf_sess_t *sess)
     }
 }
 
+void smf_sess_set_paging_n1n2message_location(
+        smf_sess_t *sess, char *n1n2message_location)
+{
+    ogs_assert(sess);
+    ogs_assert(n1n2message_location);
+
+    if (sess->paging.n1n2message_location) {
+        ogs_hash_set(self.n1n2message_hash,
+                sess->paging.n1n2message_location,
+                strlen(sess->paging.n1n2message_location),
+                NULL);
+        ogs_free(sess->paging.n1n2message_location);
+    }
+
+    sess->paging.n1n2message_location = ogs_strdup(n1n2message_location);
+    ogs_assert(sess->paging.n1n2message_location);
+
+    ogs_hash_set(self.n1n2message_hash,
+            sess->paging.n1n2message_location,
+            strlen(sess->paging.n1n2message_location),
+            sess);
+}
+
 void smf_sess_remove(smf_sess_t *sess)
 {
     int i;
@@ -1054,6 +1080,14 @@ void smf_sess_remove(smf_sess_t *sess)
     if (sess->ipv6) {
         ogs_hash_set(self.ipv6_hash, sess->ipv6->addr, OGS_IPV6_LEN, NULL);
         ogs_pfcp_ue_ip_free(sess->ipv6);
+    }
+
+    if (sess->paging.n1n2message_location) {
+        ogs_hash_set(self.n1n2message_hash,
+                sess->paging.n1n2message_location,
+                strlen(sess->paging.n1n2message_location),
+                NULL);
+        ogs_free(sess->paging.n1n2message_location);
     }
 
     if (sess->sm_context_ref)
@@ -1169,6 +1203,15 @@ smf_sess_t *smf_sess_find_by_ipv6(uint32_t *addr6)
     ogs_assert(self.ipv6_hash);
     ogs_assert(addr6);
     return (smf_sess_t *)ogs_hash_get(self.ipv6_hash, addr6, OGS_IPV6_LEN);
+}
+
+smf_sess_t *smf_sess_find_by_paging_n1n2message_location(
+        char *n1n2message_location)
+{
+    ogs_assert(self.n1n2message_hash);
+    ogs_assert(n1n2message_location);
+    return (smf_sess_t *)ogs_hash_get(self.n1n2message_hash,
+            n1n2message_location, strlen(n1n2message_location));
 }
 
 smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
