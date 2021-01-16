@@ -345,7 +345,7 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e)
                 ogs_list_for_each(&amf_ue->sess_list, sess) {
                     if (sess->paging.ongoing == true) {
                         amf_sbi_send_n1_n2_failure_notify(
-                            sess, OpenAPI_n1_n2_message_transfer_cause_UE_NOT_REACHABLE_FOR_SESSION);
+                            sess, OpenAPI_n1_n2_message_transfer_cause_UE_NOT_RESPONDING);
                     }
                 }
 
