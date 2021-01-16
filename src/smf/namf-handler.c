@@ -116,6 +116,27 @@ bool smf_namf_comm_handler_n1_n2_message_transfer_failure_notify(
         return false;
     }
 
+    /*
+     * TODO:
+     *
+     * TS23.502 4.2.3.3 Network Triggered Service Request
+     *
+     * 3c. [Conditional] SMF responds to the UPF
+     *
+     * If the SMF receives an indication from the AMF that the UE is
+     * unreachable or reachable only for regulatory prioritized service
+     * and the SMF determines that Extended Buffering does not apply,
+     * the SMF may, based on network policies, either:
+     *
+     * - indicate to the UPF to stop sending Data Notifications;
+     * - indicate to the UPF to stop buffering DL data and
+     *   discard the buffered data;
+     * - indicate to the UPF to stop sending Data Notifications and
+     *   stop buffering DL data and discard the buffered data; or
+     * - refrains from sending further Namf_Communication_N1N2MessageTransfer
+     *   message for DL data to the AMF while the UE is unreachable.
+     */
+
     smf_sbi_send_http_status_no_content(stream);
     return true;
 }
