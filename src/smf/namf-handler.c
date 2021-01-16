@@ -61,6 +61,28 @@ bool smf_namf_comm_handler_n1_n2_message_transfer(
             else
                 ogs_error("No HTTP Location");
         } else {
+
+    /*
+     * TODO:
+     *
+     * TS23.502 4.2.3.3 Network Triggered Service Request
+     *
+     * 3c. [Conditional] SMF responds to the UPF
+     *
+     * If the SMF receives an indication from the AMF that the UE is
+     * unreachable or reachable only for regulatory prioritized service
+     * and the SMF determines that Extended Buffering does not apply,
+     * the SMF may, based on network policies, either:
+     *
+     * - indicate to the UPF to stop sending Data Notifications;
+     * - indicate to the UPF to stop buffering DL data and
+     *   discard the buffered data;
+     * - indicate to the UPF to stop sending Data Notifications and
+     *   stop buffering DL data and discard the buffered data; or
+     * - refrains from sending further Namf_Communication_N1N2MessageTransfer
+     *   message for DL data to the AMF while the UE is unreachable.
+     */
+
             ogs_error("[%s:%d] HTTP response error [%d]",
                 smf_ue->supi, sess->psi, recvmsg->res_status);
         }
@@ -121,20 +143,13 @@ bool smf_namf_comm_handler_n1_n2_message_transfer_failure_notify(
      *
      * TS23.502 4.2.3.3 Network Triggered Service Request
      *
-     * 3c. [Conditional] SMF responds to the UPF
+     * 5. [Conditional] AMF to SMF:
+     * Namf_Communication_N1N2Transfer Failure Notification.
      *
-     * If the SMF receives an indication from the AMF that the UE is
-     * unreachable or reachable only for regulatory prioritized service
-     * and the SMF determines that Extended Buffering does not apply,
-     * the SMF may, based on network policies, either:
+     * When a Namf_Communication_N1N2Transfer Failure Notification
+     * is received, SMF informs the UPF (if applicable).
      *
-     * - indicate to the UPF to stop sending Data Notifications;
-     * - indicate to the UPF to stop buffering DL data and
-     *   discard the buffered data;
-     * - indicate to the UPF to stop sending Data Notifications and
-     *   stop buffering DL data and discard the buffered data; or
-     * - refrains from sending further Namf_Communication_N1N2MessageTransfer
-     *   message for DL data to the AMF while the UE is unreachable.
+     * Procedure for pause of charging at SMF is specified in clause 4.4.4.
      */
 
     smf_sbi_send_http_status_no_content(stream);
