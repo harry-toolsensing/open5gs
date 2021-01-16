@@ -441,13 +441,6 @@ void amf_state_operational(ogs_fsm_t *s, amf_event_t *e)
             END
             break;
 
-        CASE(OGS_SBI_SERVICE_NAME_NSMF_CALLBACK)
-            sbi_xact = e->sbi.data;
-            ogs_assert(sbi_xact);
-
-            ogs_sbi_xact_remove(sbi_xact);
-            break;
-
         DEFAULT
             ogs_error("Invalid service name [%s]", sbi_message.h.service.name);
             ogs_assert_if_reached();

@@ -480,6 +480,8 @@ typedef struct amf_sess_s {
         char *location;
         /* last Received n1-n2-trasfer-failure-notification-uri from SMF */
         char *n1n2_failure_txf_notif_uri;
+        /* notification client */
+        ogs_sbi_client_t *client;
     } paging;
 #define AMF_SESS_STORE_PAGING_INFO(__sESS, __lOCATION, __uRI) \
     do { \
@@ -493,13 +495,15 @@ typedef struct amf_sess_s {
     } while(0);
 #define AMF_SESS_CLEAR_PAGING_INFO(__sESS) \
     do { \
-        (__sESS)->paging.ongoing = false; \
-        if ((__sESS)->paging.location) \
+        if ((__sESS)->paging.ongoing == true) { \
+            ogs_assert((__sESS)->paging.location); \
             ogs_free((__sESS)->paging.location); \
-        ((__sESS)->paging.location) = NULL; \
-        if ((__sESS)->paging.n1n2_failure_txf_notif_uri) \
+            ((__sESS)->paging.location) = NULL; \
+            ogs_assert((__sESS)->paging.n1n2_failure_txf_notif_uri); \
             ogs_free((__sESS)->paging.n1n2_failure_txf_notif_uri); \
-        ((__sESS)->paging.n1n2_failure_txf_notif_uri) = NULL; \
+            ((__sESS)->paging.n1n2_failure_txf_notif_uri) = NULL; \
+            ((__sESS)->paging.ongoing) = false; \
+        } \
     } while(0);
 #define AMF_UE_CLEAR_PAGING_INFO(__aMF) \
     do { \

@@ -64,6 +64,9 @@ void amf_sbi_send_deactivate_all_ue_in_gnb(amf_gnb_t *gnb, int state);
 void amf_sbi_send_release_session(amf_sess_t *sess, int state);
 void amf_sbi_send_release_all_sessions(amf_ue_t *amf_ue, int state);
 
+void amf_sbi_send_n1_n2_failure_notify(
+        amf_sess_t *sess, OpenAPI_n1_n2_message_transfer_cause_e cause);
+
 #ifdef __cplusplus
 }
 #endif

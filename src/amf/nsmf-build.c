@@ -317,22 +317,19 @@ ogs_sbi_request_t *amf_nsmf_pdu_session_build_release_sm_context(
     return request;
 }
 
-ogs_sbi_request_t *amf_nsmf_callback_n1_n2_failure_notify(
-        amf_sess_t *sess, void *data)
+ogs_sbi_request_t *amf_nsmf_callback_build_n1_n2_failure_notify(
+        amf_sess_t *sess, OpenAPI_n1_n2_message_transfer_cause_e cause)
 {
     ogs_sbi_message_t message;
     ogs_sbi_request_t *request = NULL;
 
     OpenAPI_n1_n2_msg_txfr_failure_notification_t
         N1N2MsgTxfrFailureNotification;
-    OpenAPI_n1_n2_message_transfer_cause_e cause;
 
     ogs_assert(sess);
     ogs_assert(sess->paging.ongoing == true);
     ogs_assert(sess->paging.location);
     ogs_assert(sess->paging.n1n2_failure_txf_notif_uri);
-
-    cause = (OpenAPI_n1_n2_message_transfer_cause_e)data;
     ogs_assert(cause);
 
     memset(&message, 0, sizeof(message));

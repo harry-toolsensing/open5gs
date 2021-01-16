@@ -1531,6 +1531,9 @@ void amf_sess_remove(amf_sess_t *sess)
         ogs_pkbuf_free(sess->transfer.path_switch_request_ack);
     sess->transfer.path_switch_request_ack = NULL;
 
+    if (sess->paging.client)
+        ogs_sbi_client_remove(sess->paging.client);
+
     OGS_NAS_CLEAR_DATA(&sess->ue_pco);
     OGS_TLV_CLEAR_DATA(&sess->pgw_pco);
 

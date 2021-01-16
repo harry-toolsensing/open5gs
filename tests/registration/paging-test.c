@@ -296,7 +296,6 @@ static void test1_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-#if 0
     /* Send GTP-U ICMP Packet */
     qos_flow = test_qos_flow_find_by_qfi(sess, 1);
     ogs_assert(qos_flow);
@@ -311,9 +310,6 @@ static void test1_func(abts_case *tc, void *data)
             NGAP_ProcedureCode_id_Paging,
             test_ue->ngap_procedure_code);
 
-    ogs_msleep(10000);
-#endif
-#if 0
     /*
      * Send InitialUEMessage +
      * Service request
@@ -358,9 +354,7 @@ static void test1_func(abts_case *tc, void *data)
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
-#endif
 
-#if 0
     /* Send GTP-U ICMP Packet */
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
@@ -388,6 +382,38 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Send GTP-U ICMP Packet */
+    qos_flow = test_qos_flow_find_by_qfi(sess, 1);
+    ogs_assert(qos_flow);
+    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive NG-Paging */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+    ABTS_INT_EQUAL(tc,
+            NGAP_ProcedureCode_id_Paging,
+            test_ue->ngap_procedure_code);
+
+    /* Receive NG-Paging */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+    ABTS_INT_EQUAL(tc,
+            NGAP_ProcedureCode_id_Paging,
+            test_ue->ngap_procedure_code);
+
+    /* Receive NG-Paging */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+    ABTS_INT_EQUAL(tc,
+            NGAP_ProcedureCode_id_Paging,
+            test_ue->ngap_procedure_code);
+
+    ogs_msleep(3000);
 
     /*
      * Send InitialUEMessage +
@@ -422,6 +448,7 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_INT_EQUAL(tc,
             NGAP_ProcedureCode_id_InitialContextSetup,
             test_ue->ngap_procedure_code);
+
     ABTS_INT_EQUAL(tc, 0x0000, test_ue->pdu_session_status);
     ABTS_INT_EQUAL(tc, 0x0000, test_ue->pdu_session_reactivation_result);
 
@@ -431,8 +458,10 @@ static void test1_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-    /* Wait to setup N3 data connection */
-    ogs_msleep(100);
+    /* Receive GTP-U ICMP Packet */
+    recvbuf = testgnb_gtpu_read(gtpu);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    ogs_pkbuf_free(recvbuf);
 
     /* Send GTP-U ICMP Packet */
     rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
@@ -442,9 +471,7 @@ static void test1_func(abts_case *tc, void *data)
     recvbuf = testgnb_gtpu_read(gtpu);
     ABTS_PTR_NOTNULL(tc, recvbuf);
     ogs_pkbuf_free(recvbuf);
-#endif
 
-#if 0
     /* Send UE context release request */
     sendbuf = testngap_build_ue_context_release_request(test_ue,
             NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_user_inactivity,
@@ -463,7 +490,6 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, sendbuf);
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
-#endif
 
     ogs_msleep(300);
 

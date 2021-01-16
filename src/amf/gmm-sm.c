@@ -343,12 +343,8 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e)
 
                 ogs_list_for_each(&amf_ue->sess_list, sess) {
                     if (sess->paging.ongoing == true) {
-                        ogs_assert(sess->paging.location);
-                        ogs_assert(sess->paging.n1n2_failure_txf_notif_uri);
-                        amf_sess_sbi_discover_and_send(
-                                OpenAPI_nf_type_SMF, sess, 0,
-                                (void *)OpenAPI_n1_n2_message_transfer_cause_UE_NOT_REACHABLE_FOR_SESSION,
-                                amf_nsmf_callback_n1_n2_failure_notify);
+                        amf_sbi_send_n1_n2_failure_notify(
+                            sess, OpenAPI_n1_n2_message_transfer_cause_UE_NOT_REACHABLE_FOR_SESSION);
                     }
                 }
 

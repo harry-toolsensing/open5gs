@@ -226,6 +226,33 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
             if (CM_IDLE(amf_ue)) {
                 ogs_sbi_server_t *server = NULL;
                 ogs_sbi_header_t header;
+                ogs_sbi_client_t *client = NULL;
+                ogs_sockaddr_t *addr = NULL;
+
+                if (!N1N2MessageTransferReqData->n1n2_failure_txf_notif_uri) {
+                    ogs_error("[%s:%d] No n1-n2-failure-notification-uri",
+                            amf_ue->supi, sess->psi);
+                    return OGS_ERROR;
+                }
+
+                addr = ogs_sbi_getaddr_from_uri(
+                        N1N2MessageTransferReqData->n1n2_failure_txf_notif_uri);
+                if (!addr) {
+                    ogs_error("[%s:%d] Invalid URI [%s]",
+                            amf_ue->supi, sess->psi,
+                            N1N2MessageTransferReqData->
+                                n1n2_failure_txf_notif_uri);
+                    return OGS_ERROR;;
+                }
+
+                client = ogs_sbi_client_find(addr);
+                if (!client) {
+                    client = ogs_sbi_client_add(addr);
+                    ogs_assert(client);
+                }
+                OGS_SETUP_SBI_CLIENT(&sess->paging, client);
+
+                ogs_freeaddrinfo(addr);
 
                 ogs_fatal("CM_IDLE");
 
