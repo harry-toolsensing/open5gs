@@ -329,6 +329,7 @@ static void test1_func(abts_case *tc, void *data)
     /*
      * Send InitialUEMessage +
      * Service request
+     *  - Type: Mobile terminated services(2)
      *  - PDU Session Status
      */
     test_ue->service_request_param.integrity_protected = 0;
@@ -358,7 +359,6 @@ static void test1_func(abts_case *tc, void *data)
             NGAP_ProcedureCode_id_InitialContextSetup,
             test_ue->ngap_procedure_code);
     ABTS_INT_EQUAL(tc, 0x2000, test_ue->pdu_session_status);
-    ABTS_INT_EQUAL(tc, 0x0000, test_ue->pdu_session_reactivation_result);
 
     /* Send Initial context setup response */
     sendbuf = testngap_build_initial_context_setup_response(test_ue, true);
@@ -438,6 +438,94 @@ static void test1_func(abts_case *tc, void *data)
     /*
      * Send InitialUEMessage +
      * Service request
+     *  - Type: Signalling
+     *  - Uplink Data Status
+     */
+    test_ue->service_request_param.integrity_protected = 0;
+    test_ue->service_request_param.uplink_data_status = 0;
+    test_ue->service_request_param.pdu_session_status = 0;
+    nasbuf = testgmm_build_service_request(
+            test_ue, OGS_NAS_SERVICE_TYPE_SIGNALLING, NULL);
+    ABTS_PTR_NOTNULL(tc, nasbuf);
+
+    test_ue->service_request_param.integrity_protected = 1;
+    test_ue->service_request_param.uplink_data_status = 0;
+    test_ue->service_request_param.pdu_session_status = 0;
+    gmmbuf = testgmm_build_service_request(
+            test_ue, OGS_NAS_SERVICE_TYPE_SIGNALLING, nasbuf);
+    ABTS_PTR_NOTNULL(tc, gmmbuf);
+
+    sendbuf = testngap_build_initial_ue_message(test_ue, gmmbuf, true, true);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive Initial context setup request +
+     * Service accept */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+    ABTS_INT_EQUAL(tc,
+            NGAP_ProcedureCode_id_InitialContextSetup,
+            test_ue->ngap_procedure_code);
+
+    /* Send Initial context setup response */
+    sendbuf = testngap_build_initial_context_setup_response(test_ue, true);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive GTP-U ICMP Packet */
+    recvbuf = testgnb_gtpu_read(gtpu);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    ogs_pkbuf_free(recvbuf);
+
+    /* Send GTP-U ICMP Packet */
+    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive GTP-U ICMP Packet */
+    recvbuf = testgnb_gtpu_read(gtpu);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    ogs_pkbuf_free(recvbuf);
+
+    /* Send UE context release request */
+    sendbuf = testngap_build_ue_context_release_request(test_ue,
+            NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_user_inactivity,
+            true);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive UE context release command */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+
+    /* Send UE context release complete */
+    sendbuf = testngap_build_ue_context_release_complete(test_ue);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Send GTP-U ICMP Packet */
+    qos_flow = test_qos_flow_find_by_qfi(sess, 1);
+    ogs_assert(qos_flow);
+    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive NG-Paging */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+    ABTS_INT_EQUAL(tc,
+            NGAP_ProcedureCode_id_Paging,
+            test_ue->ngap_procedure_code);
+
+    /*
+     * Send InitialUEMessage +
+     * Service request
+     *  - Type: Data
      *  - Uplink Data Status
      */
     test_ue->service_request_param.integrity_protected = 0;
@@ -469,7 +557,6 @@ static void test1_func(abts_case *tc, void *data)
             NGAP_ProcedureCode_id_InitialContextSetup,
             test_ue->ngap_procedure_code);
 
-    ABTS_INT_EQUAL(tc, 0x0000, test_ue->pdu_session_status);
     ABTS_INT_EQUAL(tc, 0x0000, test_ue->pdu_session_reactivation_result);
 
     /* Send Initial context setup response */
