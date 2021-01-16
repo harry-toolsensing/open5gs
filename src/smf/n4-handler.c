@@ -774,7 +774,6 @@ void smf_n4_handle_session_report_request(
             header.api.version = (char *)OGS_SBI_API_V1;
             header.resource.component[0] =
                     (char *)OGS_SBI_RESOURCE_NAME_N1_N2_FAILURE_NOTIFY;
-            header.resource.component[1] = sess->sm_context_ref;
             param.n1n2_failure_txf_notif_uri =
                 ogs_sbi_server_uri(server, &header);
             ogs_assert(param.n1n2_failure_txf_notif_uri);
