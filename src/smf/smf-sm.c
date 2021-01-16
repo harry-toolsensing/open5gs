@@ -390,6 +390,27 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         CASE(OGS_SBI_SERVICE_NAME_NSMF_CALLBACK)
             SWITCH(sbi_message.h.resource.component[0])
             CASE(OGS_SBI_RESOURCE_NAME_N1_N2_FAILURE_NOTIFY)
+                if (!sbi_message.h.resource.component[1]) {
+                    ogs_error("No smContextRef [%s]",
+                            sbi_message.h.resource.component[2]);
+                    ogs_sbi_server_send_error(stream,
+                            OGS_SBI_HTTP_STATUS_BAD_REQUEST, &sbi_message,
+                            "No smContextRef",
+                            sbi_message.h.resource.component[1]);
+                    break;
+                }
+
+                sess = smf_sess_find_by_sm_context_ref(
+                        sbi_message.h.resource.component[1]);
+
+                if (!sess) {
+                    ogs_error("Not found [%s]", sbi_message.h.uri);
+                    ogs_sbi_server_send_error(stream,
+                            OGS_SBI_HTTP_STATUS_NOT_FOUND, &sbi_message,
+                            "Not found", sbi_message.h.resource.component[1]);
+                    break;
+                }
+
                 smf_sbi_send_http_status_no_content(stream);
                 break;
             DEFAULT
