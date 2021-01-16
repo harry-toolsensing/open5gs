@@ -393,7 +393,6 @@ void smf_sbi_send_sm_context_status_notify(smf_sess_t *sess)
     ogs_assert(sess);
     client = sess->namf.client;
     ogs_assert(client);
-    client->cb = client_cb;
 
     request = smf_namf_callback_build_sm_context_status(sess, NULL);
     ogs_assert(request);
