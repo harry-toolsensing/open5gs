@@ -397,6 +397,9 @@ static void test1_func(abts_case *tc, void *data)
             NGAP_ProcedureCode_id_Paging,
             test_ue->ngap_procedure_code);
 
+#define ENABLE_PAGING_FAILED 1
+
+#if ENABLE_PAGING_FAILED
     /* Receive NG-Paging */
     recvbuf = testgnb_ngap_read(ngap);
     ABTS_PTR_NOTNULL(tc, recvbuf);
@@ -414,6 +417,7 @@ static void test1_func(abts_case *tc, void *data)
             test_ue->ngap_procedure_code);
 
     ogs_msleep(3000);
+#endif
 
     /*
      * Send InitialUEMessage +
