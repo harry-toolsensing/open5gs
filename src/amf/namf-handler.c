@@ -256,6 +256,10 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
 
                 ogs_fatal("CM_IDLE");
 
+                status = OGS_SBI_HTTP_STATUS_ACCEPTED;
+                N1N2MessageTransferRspData.cause =
+                    OpenAPI_n1_n2_message_transfer_cause_ATTEMPTING_TO_REACH_UE;
+
                 /* Location */
                 server = ogs_sbi_server_from_stream(stream);
                 ogs_assert(server);
@@ -280,10 +284,6 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
                 /* Store N2 Transfer message */
                 AMF_SESS_STORE_N2_TRANSFER(
                         sess, pdu_session_resource_setup_request, n2buf);
-
-                status = OGS_SBI_HTTP_STATUS_ACCEPTED;
-                N1N2MessageTransferRspData.cause =
-                    OpenAPI_n1_n2_message_transfer_cause_ATTEMPTING_TO_REACH_UE;
 
                 ngap_send_paging(amf_ue);
 

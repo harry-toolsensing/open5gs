@@ -339,7 +339,20 @@ ogs_sbi_request_t *amf_nsmf_callback_build_n1_n2_failure_notify(
     memset(&N1N2MsgTxfrFailureNotification,
             0, sizeof(N1N2MsgTxfrFailureNotification));
     N1N2MsgTxfrFailureNotification.cause = cause;
-    N1N2MsgTxfrFailureNotification.n1n2_msg_data_uri = sess->paging.location;
+    if (sess->paging.location) {
+        N1N2MsgTxfrFailureNotification.n1n2_msg_data_uri =
+            sess->paging.location;
+    } else {
+        /* TS29.518 6.1.6.2.30 Type: N1N2MsgTxfrFailureNotification
+         *
+         * If no Location header was returned when the N1/N2
+         * message transfer was initiated, e.g. when a 200 OK
+         * response was sent for a UE in RRC inactive state,
+         * this IE shall be set to a dummy URI, i.e. an URI with
+         * no authority and an empty path (e.g. "http:").
+         */
+        N1N2MsgTxfrFailureNotification.n1n2_msg_data_uri = (char *)"http:";
+    }
 
     message.N1N2MsgTxfrFailureNotification = &N1N2MsgTxfrFailureNotification;
 

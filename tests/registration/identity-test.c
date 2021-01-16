@@ -316,6 +316,7 @@ static void test1_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
+    /* TODO : we need to analyze it */
     ogs_msleep(100);
 
     /* Send De-registration request */
@@ -358,6 +359,7 @@ static void test1_func(abts_case *tc, void *data)
     ABTS_PTR_NOTNULL(tc, recvbuf);
     testngap_recv(test_ue, recvbuf);
 
+    /* TODO : we need to analyze it */
     ogs_msleep(100);
 
     /* INVALID SUCI */

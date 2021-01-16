@@ -1472,7 +1472,8 @@ static void test4_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-    /* Wait to setup N3 data connection */
+    /* Wait to setup N3 data connection.
+     * Otherwise, network-triggered service request is initiated */
     ogs_msleep(100);
 
     /* Send GTP-U ICMP Packet */

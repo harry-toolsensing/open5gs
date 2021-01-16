@@ -274,7 +274,23 @@ static void test1_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-    /* Wait to setup N3 data connection */
+    /* Wait to setup N3 data connection
+     *
+     * Otherwise, the following case could occur:
+     *
+     * 1. PDUSessionResourceSetupResponse
+     * 2. UEContextReleaseRequest
+     * 3. /nsmf-pdusession/v1/sm-contexts/{smContextRef}/modify
+     * 4. /nsmf-pdusession/v1/sm-contexts/{smContextRef}/modify
+     * 5. PFCP Session Modifcation Request (Deactivated)
+     * 6. PFCP Session Modifcation Request (OuterHeaderCreation)
+     * 7. PFCP Session Modifcation Response
+     * 8. PFCP Session Modifcation Response
+     *
+     * As such, N3 status could be activated.
+     *
+     * To prevent this situation, we'll use ogs_msleep(100).
+     */
     ogs_msleep(100);
 
     /* Send UE context release request */
