@@ -197,15 +197,6 @@ int amf_nsmf_pdu_session_handle_update_sm_context(
                         sess, pdu_session_resource_setup_request,
                         ogs_pkbuf_copy(n2smbuf));
 
-#if 0
-                ogs_fatal("%d, %d, %d",
-                    amf_sess_xact_state_count(
-                        amf_ue, AMF_RELEASE_SM_CONTEXT_REGISTRATION_ACCEPT),
-                    amf_sess_xact_state_count(
-                        amf_ue, AMF_RELEASE_SM_CONTEXT_SERVICE_ACCEPT),
-                    amf_sess_xact_state_count(
-                        amf_ue, AMF_UPDATE_SM_CONTEXT_ACTIVATING));
-#endif
                 switch(amf_ue->nas.message_type) {
                 case OGS_NAS_5GS_REGISTRATION_REQUEST:
                     if (SESSION_SYNC_DONE(amf_ue,
