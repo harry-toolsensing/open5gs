@@ -454,7 +454,7 @@ typedef struct amf_sess_s {
         ogs_assert(__sESS); \
         ogs_assert((__sESS)->amf_ue); \
         if (sess->transfer.__n2Type) { \
-            ogs_error("[%s:%d] N2 SM Content is duplicated", \
+            ogs_error("[%s:%d] N2 transfer message duplicated. Overwritten", \
                     ((__sESS)->amf_ue)->supi, sess->psi); \
             ogs_pkbuf_free(sess->transfer.__n2Type); \
         } \
