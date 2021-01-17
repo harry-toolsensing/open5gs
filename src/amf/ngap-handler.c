@@ -482,8 +482,6 @@ void ngap_handle_initial_ue_message(amf_gnb_t *gnb, ogs_ngap_message_t *message)
         ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id,
         ran_ue->saved.tai.tac.v, (long long)ran_ue->saved.nr_cgi.cell_id);
 
-    ran_ue->ongoing_procedure = NGAP_UE_REGISTRATION_ONGOING;
-
     if (UEContextRequest) {
         if (*UEContextRequest == NGAP_UEContextRequest_requested) {
             ran_ue->ue_context_requested = true;
@@ -820,8 +818,6 @@ void ngap_handle_initial_context_setup_response(
 
         ogs_pkbuf_free(param.n2smbuf);
     }
-
-    ran_ue->ongoing_procedure = NGAP_UE_ONGOING_DONE;
 }
 
 void ngap_handle_initial_context_setup_failure(
@@ -1401,8 +1397,6 @@ void ngap_handle_pdu_session_resource_setup_response(
 
         ogs_pkbuf_free(param.n2smbuf);
     }
-
-    ran_ue->ongoing_procedure = NGAP_UE_ONGOING_DONE;
 }
 
 void ngap_handle_pdu_session_resource_modify_response(
@@ -1832,8 +1826,6 @@ void ngap_handle_path_switch_request(
                 NGAP_CauseRadioNetwork_unknown_local_UE_NGAP_ID);
         return;
     }
-
-    ran_ue->ongoing_procedure = NGAP_UE_XN_HANDOVER_ONGOING;
 
     amf_ue = ran_ue->amf_ue;
     if (!amf_ue) {

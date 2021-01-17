@@ -161,12 +161,6 @@ struct ran_ue_s {
     bool            ue_context_requested;
     bool            initial_context_setup_request_sent;
 
-#define NGAP_UE_ONGOING_DONE            0
-#define NGAP_UE_REGISTRATION_ONGOING    1
-#define NGAP_UE_XN_HANDOVER_ONGOING     2
-#define NGAP_UE_N2_HANDOVER_ONGOING     3
-    int             ongoing_procedure;
-
     /* Handover Info */
     NGAP_HandoverType_t handover_type;
     ran_ue_t        *source_ue;
