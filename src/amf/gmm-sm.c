@@ -714,13 +714,6 @@ void gmm_state_security_mode(ogs_fsm_t *s, amf_event_t *e)
             } else if (amf_ue->nas.message_type ==
                         OGS_NAS_5GS_SERVICE_REQUEST) {
                 OGS_FSM_TRAN(s, &gmm_state_registered);
-#if 0
-            } else if (amf_ue->nas.message_type ==
-                        OGS_NAS_5GS_SERVICE_REQUEST ||
-                            amf_ue->nas.message_type ==
-                                AMF_EPS_TYPE_TAU_REQUEST) {
-                OGS_FSM_TRAN(s, &gmm_state_registered);
-#endif
             } else {
                 ogs_fatal("Invalid OGS_NAS_5GS[%d]", amf_ue->nas.message_type);
                 ogs_assert_if_reached();
