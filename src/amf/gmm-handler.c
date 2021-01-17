@@ -510,8 +510,7 @@ int gmm_handle_deregistration_request(amf_ue_t *amf_ue,
 
     ogs_info("[%s]    SUCI", amf_ue->suci);
 
-    amf_sbi_send_release_all_sessions(
-            amf_ue, AMF_RELEASE_SM_CONTEXT_NO_STATE);
+    amf_sbi_send_release_all_sessions(amf_ue, AMF_SESS_SM_CONTEXT_NO_STATE);
 
     if (ogs_list_count(&amf_ue->sess_list) == 0)
         nas_5gs_send_de_registration_accept(amf_ue);
@@ -793,7 +792,7 @@ int gmm_handle_ul_nas_transport(amf_ue_t *amf_ue,
             }
 
             amf_sess_sbi_discover_and_send(OpenAPI_nf_type_SMF,
-                    sess, AMF_UPDATE_SM_CONTEXT_NO_STATE, NULL,
+                    sess, AMF_SESS_SM_CONTEXT_NO_STATE, NULL,
                     amf_nsmf_pdu_session_build_create_sm_context);
 
         } else {
