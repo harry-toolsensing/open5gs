@@ -1876,6 +1876,8 @@ ogs_pkbuf_t *ngap_build_path_switch_ack(amf_ue_t *amf_ue)
         }
     }
 
+    ran_ue->ongoing_procedure = NGAP_UE_ONGOING_DONE;
+
     return ogs_ngap_encode(&pdu);
 }
 
