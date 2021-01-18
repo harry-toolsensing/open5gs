@@ -362,7 +362,8 @@ static void test1_func(abts_case *tc, void *data)
     /* TODO :
      *
      * I can't remeber why do I add the following sleep
-     * we need to analyze it
+     * At this point, this commented out.
+     * I'll need to analyze it later.
      */
 #if 0
     ogs_msleep(100);

@@ -918,7 +918,83 @@ static void cm_idle_error_indication_func(abts_case *tc, void *data)
     rv = test_gtpu_send_error_indication(gtpu, qos_flow);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
-    ogs_msleep(300);
+    /* Receive NG-Paging */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+    ABTS_INT_EQUAL(tc,
+            NGAP_ProcedureCode_id_Paging,
+            test_ue->ngap_procedure_code);
+
+    /*
+     * Send InitialUEMessage +
+     * Service request
+     *  - Type: Mobile terminated services(2)
+     *  - PDU Session Status
+     */
+    test_ue->service_request_param.integrity_protected = 0;
+    test_ue->service_request_param.pdu_session_status = 0;
+    nasbuf = testgmm_build_service_request(
+            test_ue, OGS_NAS_SERVICE_TYPE_MOBILE_TERMINATED_SERVICES, NULL);
+    ABTS_PTR_NOTNULL(tc, nasbuf);
+
+    test_ue->service_request_param.integrity_protected = 1;
+    test_ue->service_request_param.pdu_session_status = 0;
+    gmmbuf = testgmm_build_service_request(
+            test_ue, OGS_NAS_SERVICE_TYPE_MOBILE_TERMINATED_SERVICES, nasbuf);
+    ABTS_PTR_NOTNULL(tc, gmmbuf);
+
+    sendbuf = testngap_build_initial_ue_message(test_ue, gmmbuf, true, true);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive Initial context setup request +
+     * Service accept */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+    ABTS_INT_EQUAL(tc,
+            NGAP_ProcedureCode_id_InitialContextSetup,
+            test_ue->ngap_procedure_code);
+
+    /* Send Initial context setup response */
+    sendbuf = testngap_build_initial_context_setup_response(test_ue, true);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Wait to setup N3 data connection.
+     * Otherwise, network-triggered service request is initiated */
+    ogs_msleep(100);
+
+    /* Send GTP-U ICMP Packet */
+    rv = test_gtpu_send_ping(gtpu, qos_flow, TEST_PING_IPV4);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive GTP-U ICMP Packet */
+    recvbuf = testgnb_gtpu_read(gtpu);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    ogs_pkbuf_free(recvbuf);
+
+    /* Send UE context release request */
+    sendbuf = testngap_build_ue_context_release_request(test_ue,
+            NGAP_Cause_PR_radioNetwork, NGAP_CauseRadioNetwork_user_inactivity,
+            false);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
+    /* Receive UE context release command */
+    recvbuf = testgnb_ngap_read(ngap);
+    ABTS_PTR_NOTNULL(tc, recvbuf);
+    testngap_recv(test_ue, recvbuf);
+
+    /* Send UE context release complete */
+    sendbuf = testngap_build_ue_context_release_complete(test_ue);
+    ABTS_PTR_NOTNULL(tc, sendbuf);
+    rv = testgnb_ngap_send(ngap, sendbuf);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
     /********** Remove Subscriber in Database */
     doc = BCON_NEW("imsi", BCON_UTF8(test_ue->imsi));
@@ -2987,16 +3063,12 @@ abts_suite *test_paging(abts_suite *suite)
 {
     suite = ADD_SUITE(suite)
 
-#if 0
     abts_run_test(suite, cm_idle_paging_func, NULL);
-#endif
     abts_run_test(suite, cm_idle_error_indication_func, NULL);
-#if 0
     abts_run_test(suite, vonr_qos_flow_test1_func, NULL);
     abts_run_test(suite, vonr_session_test2_func, NULL);
     abts_run_test(suite, registration_ue_context_test4_func, NULL);
     abts_run_test(suite, registration_idle_test1_func, NULL);
-#endif
 
     return suite;
 }

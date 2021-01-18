@@ -18,6 +18,7 @@
  */
 
 #include "sbi-path.h"
+#include "ngap-path.h"
 #include "binding.h"
 #include "namf-handler.h"
 
@@ -89,7 +90,38 @@ bool smf_namf_comm_handler_n1_n2_message_transfer(
         break;
 
     case SMF_ERROR_INDICATON_RECEIVED_FROM_5G_AN:
-        ogs_fatal("status = %d", recvmsg->res_status);
+        if (recvmsg->res_status == OGS_SBI_HTTP_STATUS_OK) {
+            OpenAPI_n1_n2_message_transfer_rsp_data_t
+                *N1N2MessageTransferRspData =
+                    recvmsg->N1N2MessageTransferRspData;
+            if (!N1N2MessageTransferRspData) {
+                ogs_error("No N1N2MessageTransferRspData");
+                break;
+            }
+
+            if (N1N2MessageTransferRspData->cause ==
+                OpenAPI_n1_n2_message_transfer_cause_N1_MSG_NOT_TRANSFERRED) {
+                smf_n1_n2_message_transfer_param_t param;
+
+                memset(&param, 0, sizeof(param));
+                param.state = SMF_NETWORK_TRIGGERED_SERVICE_REQUEST;
+                param.n2smbuf =
+                    ngap_build_pdu_session_resource_setup_request_transfer(
+                            sess);
+                ogs_assert(param.n2smbuf);
+
+                param.n1n2_failure_txf_notif_uri = true;
+
+                smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+            } else {
+                ogs_error("Not implemented [Cause:%d]",
+                        N1N2MessageTransferRspData->cause);
+                break;
+            }
+        } else {
+            ogs_error("[%s:%d] HTTP response error [%d]",
+                smf_ue->supi, sess->psi, recvmsg->res_status);
+        }
         break;
 
     default:
