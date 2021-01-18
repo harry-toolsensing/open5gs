@@ -1531,6 +1531,10 @@ void amf_sess_remove(amf_sess_t *sess)
         ogs_pkbuf_free(sess->transfer.path_switch_request_ack);
     sess->transfer.path_switch_request_ack = NULL;
 
+    if (sess->transfer.pdu_session_resource_release_command)
+        ogs_pkbuf_free(sess->transfer.pdu_session_resource_release_command);
+    sess->transfer.pdu_session_resource_release_command = NULL;
+
     if (sess->paging.client)
         ogs_sbi_client_remove(sess->paging.client);
 

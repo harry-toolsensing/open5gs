@@ -64,6 +64,7 @@ static uint8_t gtp_cause_from_pfcp(uint8_t pfcp_cause)
 
     return OGS_GTP_CAUSE_SYSTEM_FAILURE;
 }
+
 static int sbi_status_from_pfcp(uint8_t pfcp_cause)
 {
     switch (pfcp_cause) {
@@ -311,9 +312,24 @@ void smf_5gc_n4_handle_session_modification_response(
         }
 
     } else if (flags & OGS_PFCP_MODIFY_DEACTIVATE) {
-        /* Only ACTIVING & DEACTIVATED is Included */
-        smf_sbi_send_sm_context_updated_data_up_cnx_state(
-                sess, stream, OpenAPI_up_cnx_state_DEACTIVATED);
+        if (flags & OGS_PFCP_MODIFY_ERROR_INDICATION) {
+            smf_n1_n2_message_transfer_param_t param;
+
+            memset(&param, 0, sizeof(param));
+            param.state = SMF_ERROR_INDICATON_RECEIVED_FROM_5G_AN;
+            param.n2smbuf =
+                ngap_build_pdu_session_resource_release_command_transfer(
+                    NGAP_Cause_PR_nas, NGAP_CauseNas_normal_release);
+            ogs_assert(param.n2smbuf);
+
+            param.n1n2_failure_txf_notif_uri = true;
+
+            smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+        } else {
+            /* Only ACTIVING & DEACTIVATED is Included */
+            smf_sbi_send_sm_context_updated_data_up_cnx_state(
+                    sess, stream, OpenAPI_up_cnx_state_DEACTIVATED);
+        }
     } else if (flags & OGS_PFCP_MODIFY_CREATE) {
         smf_n1_n2_message_transfer_param_t param;
 
@@ -757,57 +773,33 @@ void smf_n4_handle_session_report_request(
         if (sess->paging.ue_requested_pdu_session_establishment_done == true) {
             smf_n1_n2_message_transfer_param_t param;
 
-            ogs_sbi_server_t *server = NULL;
-            ogs_sbi_header_t header;
-
             memset(&param, 0, sizeof(param));
             param.state = SMF_NETWORK_TRIGGERED_SERVICE_REQUEST;
             param.n2smbuf =
                 ngap_build_pdu_session_resource_setup_request_transfer(sess);
             ogs_assert(param.n2smbuf);
 
-            server = ogs_list_first(&ogs_sbi_self()->server_list);
-            ogs_assert(server);
-
-            memset(&header, 0, sizeof(header));
-            header.service.name = (char *)OGS_SBI_SERVICE_NAME_NSMF_CALLBACK;
-            header.api.version = (char *)OGS_SBI_API_V1;
-            header.resource.component[0] =
-                    (char *)OGS_SBI_RESOURCE_NAME_N1_N2_FAILURE_NOTIFY;
-            param.n1n2_failure_txf_notif_uri =
-                ogs_sbi_server_uri(server, &header);
-            ogs_assert(param.n1n2_failure_txf_notif_uri);
+            param.n1n2_failure_txf_notif_uri = true;
 
             smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
-
-            ogs_free(param.n1n2_failure_txf_notif_uri);
         }
 
     } else if (report_type.error_indication_report) {
-        /* TODO */
+        smf_ue_t *smf_ue = sess->smf_ue;
+        smf_sess_t *error_indication_session = NULL;
+        ogs_assert(smf_ue);
 
         smf_pfcp_send_session_report_response(
                 pfcp_xact, sess, OGS_PFCP_CAUSE_REQUEST_ACCEPTED);
 
-#if 0
-        bearer = smf_bearer_find_by_error_indication_report(
-                sess, &pfcp_req->error_indication_report);
+        error_indication_session = smf_sess_find_by_error_indication_report(
+                smf_ue, &pfcp_req->error_indication_report);
 
-        if (!bearer) return;
+        if (!error_indication_session) return;
 
-        ogs_list_for_each(&smf_ue->sess_list, sess) {
-
-            sess->state.release_access_bearers = false;
-
-            smf_pfcp_send_sess_modification_request(sess,
-            /* We only use the `assoc_xact` parameter temporarily here
-             * to pass the `bearer` context. */
-                    (ogs_gtp_xact_t *)bearer,
-                    NULL,
-                    OGS_PFCP_MODIFY_DL_ONLY|OGS_PFCP_MODIFY_DEACTIVATE|
-                    OGS_PFCP_MODIFY_ERROR_INDICATION);
-        }
-#endif
+        smf_5gc_pfcp_send_session_modification_request(
+                error_indication_session, NULL,
+                OGS_PFCP_MODIFY_DEACTIVATE|OGS_PFCP_MODIFY_ERROR_INDICATION);
 
     } else {
         ogs_error("Not supported Report Type[%d]", report_type.value);

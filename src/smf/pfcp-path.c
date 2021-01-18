@@ -285,7 +285,8 @@ void smf_5gc_pfcp_send_session_modification_request(
     ogs_pfcp_xact_t *xact = NULL;
 
     ogs_assert(sess);
-    ogs_assert(stream);
+    if ((flags & OGS_PFCP_MODIFY_ERROR_INDICATION) == 0)
+        ogs_assert(stream);
 
     memset(&h, 0, sizeof(ogs_pfcp_header_t));
     h.type = OGS_PFCP_SESSION_MODIFICATION_REQUEST_TYPE;

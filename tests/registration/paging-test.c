@@ -912,6 +912,12 @@ static void cm_idle_error_indication_func(abts_case *tc, void *data)
     rv = testgnb_ngap_send(ngap, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
 
+    /* Send Error Indication */
+    qos_flow = test_qos_flow_find_by_qfi(sess, 1);
+    ogs_assert(qos_flow);
+    rv = test_gtpu_send_error_indication(gtpu, qos_flow);
+    ABTS_INT_EQUAL(tc, OGS_OK, rv);
+
     ogs_msleep(300);
 
     /********** Remove Subscriber in Database */
@@ -2982,7 +2988,9 @@ abts_suite *test_paging(abts_suite *suite)
     suite = ADD_SUITE(suite)
 
     abts_run_test(suite, cm_idle_paging_func, NULL);
+#if 0
     abts_run_test(suite, cm_idle_error_indication_func, NULL);
+#endif
     abts_run_test(suite, vonr_qos_flow_test1_func, NULL);
     abts_run_test(suite, vonr_session_test2_func, NULL);
     abts_run_test(suite, registration_ue_context_test4_func, NULL);

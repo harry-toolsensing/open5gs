@@ -88,6 +88,10 @@ bool smf_namf_comm_handler_n1_n2_message_transfer(
         }
         break;
 
+    case SMF_ERROR_INDICATON_RECEIVED_FROM_5G_AN:
+        ogs_fatal("status = %d", recvmsg->res_status);
+        break;
+
     default:
         ogs_fatal("Unexpected state [%d]", state);
         ogs_assert_if_reached();

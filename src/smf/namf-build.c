@@ -30,6 +30,9 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
     ogs_sbi_message_t message;
     ogs_sbi_request_t *request = NULL;
 
+    ogs_sbi_server_t *server = NULL;
+    ogs_sbi_header_t header;
+
     OpenAPI_n1_n2_message_transfer_req_data_t N1N2MessageTransferReqData;
 
     OpenAPI_n1_message_container_t n1MessageContainer;
@@ -101,6 +104,9 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
         case SMF_NETWORK_REQUESTED_QOS_FLOW_MODIFICATION:
             n2InfoContent.ngap_ie_type = OpenAPI_ngap_ie_type_PDU_RES_MOD_REQ;
             break;
+        case SMF_ERROR_INDICATON_RECEIVED_FROM_5G_AN:
+            n2InfoContent.ngap_ie_type = OpenAPI_ngap_ie_type_PDU_RES_REL_CMD;
+            break;
         default:
             ogs_fatal("Unexpected state [%d]", param->state);
             ogs_assert_if_reached();
@@ -118,8 +124,19 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
         message.num_of_part++;
     }
 
-    N1N2MessageTransferReqData.n1n2_failure_txf_notif_uri =
-        param->n1n2_failure_txf_notif_uri;
+    if (param->n1n2_failure_txf_notif_uri == true) {
+        server = ogs_list_first(&ogs_sbi_self()->server_list);
+        ogs_assert(server);
+
+        memset(&header, 0, sizeof(header));
+        header.service.name = (char *)OGS_SBI_SERVICE_NAME_NSMF_CALLBACK;
+        header.api.version = (char *)OGS_SBI_API_V1;
+        header.resource.component[0] =
+                (char *)OGS_SBI_RESOURCE_NAME_N1_N2_FAILURE_NOTIFY;
+        N1N2MessageTransferReqData.n1n2_failure_txf_notif_uri =
+            ogs_sbi_server_uri(server, &header);
+        ogs_assert(N1N2MessageTransferReqData.n1n2_failure_txf_notif_uri);
+    }
 
     request = ogs_sbi_build_request(&message);
     ogs_assert(request);
@@ -127,6 +144,9 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
     for (i = 0; i < message.num_of_part; i++)
         if (message.part[i].pkbuf)
             ogs_pkbuf_free(message.part[i].pkbuf);
+
+    if (N1N2MessageTransferReqData.n1n2_failure_txf_notif_uri)
+        ogs_free(N1N2MessageTransferReqData.n1n2_failure_txf_notif_uri);
 
     return request;
 }

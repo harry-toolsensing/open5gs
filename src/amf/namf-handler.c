@@ -146,6 +146,7 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
     switch (n2InfoContent->ngap_ie_type) {
     case OpenAPI_ngap_ie_type_PDU_RES_SETUP_REQ:
     case OpenAPI_ngap_ie_type_PDU_RES_MOD_REQ:
+    case OpenAPI_ngap_ie_type_PDU_RES_REL_CMD:
         /* N1 SM Message */
         if (n1buf) {
             gmmbuf = gmm_build_dl_nas_transport(sess,
@@ -328,6 +329,93 @@ int amf_namf_comm_handle_n1_n2_message_transfer(
             ogs_assert_if_reached();
         }
 
+        break;
+
+    case OpenAPI_ngap_ie_type_PDU_RES_REL_CMD:
+        if (!n2buf) {
+            ogs_error("[%s] No N2 SM Content", amf_ue->supi);
+            return OGS_ERROR;
+        }
+
+        if (CM_IDLE(amf_ue)) {
+            ogs_sbi_server_t *server = NULL;
+            ogs_sbi_header_t header;
+            ogs_sbi_client_t *client = NULL;
+            ogs_sockaddr_t *addr = NULL;
+
+            if (!N1N2MessageTransferReqData->n1n2_failure_txf_notif_uri) {
+                ogs_error("[%s:%d] No n1-n2-failure-notification-uri",
+                        amf_ue->supi, sess->psi);
+                return OGS_ERROR;
+            }
+
+            addr = ogs_sbi_getaddr_from_uri(
+                    N1N2MessageTransferReqData->n1n2_failure_txf_notif_uri);
+            if (!addr) {
+                ogs_error("[%s:%d] Invalid URI [%s]",
+                        amf_ue->supi, sess->psi,
+                        N1N2MessageTransferReqData->
+                            n1n2_failure_txf_notif_uri);
+                return OGS_ERROR;;
+            }
+
+            client = ogs_sbi_client_find(addr);
+            if (!client) {
+                client = ogs_sbi_client_add(addr);
+                ogs_assert(client);
+            }
+            OGS_SETUP_SBI_CLIENT(&sess->paging, client);
+
+            ogs_freeaddrinfo(addr);
+
+            ogs_fatal("CM_IDLE");
+
+            status = OGS_SBI_HTTP_STATUS_ACCEPTED;
+            N1N2MessageTransferRspData.cause =
+                OpenAPI_n1_n2_message_transfer_cause_ATTEMPTING_TO_REACH_UE;
+
+            /* Location */
+            server = ogs_sbi_server_from_stream(stream);
+            ogs_assert(server);
+
+            memset(&header, 0, sizeof(header));
+            header.service.name = (char *)OGS_SBI_SERVICE_NAME_NAMF_COMM;
+            header.api.version = (char *)OGS_SBI_API_V1;
+            header.resource.component[0] =
+                (char *)OGS_SBI_RESOURCE_NAME_UE_CONTEXTS;
+            header.resource.component[1] = amf_ue->supi;
+            header.resource.component[2] =
+                (char *)OGS_SBI_RESOURCE_NAME_N1_N2_MESSAGES;
+            header.resource.component[3] = sess->sm_context_ref;
+
+            sendmsg.http.location = ogs_sbi_server_uri(server, &header);
+
+            /* Store Paging Info */
+            AMF_SESS_STORE_PAGING_INFO(
+                    sess, sendmsg.http.location,
+                    N1N2MessageTransferReqData->n1n2_failure_txf_notif_uri);
+
+            /* Store N2 Transfer message */
+            AMF_SESS_STORE_N2_TRANSFER(
+                    sess, pdu_session_resource_release_command, n2buf);
+
+            ngap_send_paging(amf_ue);
+
+        } else if (CM_CONNECTED(amf_ue)) {
+            ogs_fatal("asdklfjasdfasfsdf");
+#if 0
+            ngapbuf = ngap_build_pdu_session_resource_modify_request(
+                    sess, gmmbuf, n2buf);
+            ogs_assert(ngapbuf);
+
+            if (nas_5gs_send_to_gnb(amf_ue, ngapbuf) != OGS_OK)
+                ogs_error("nas_5gs_send_to_gnb() failed");
+#endif
+
+        } else {
+            ogs_fatal("[%s] Invalid AMF-UE state", amf_ue->supi);
+            ogs_assert_if_reached();
+        }
         break;
 
     default:

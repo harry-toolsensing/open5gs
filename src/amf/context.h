@@ -448,6 +448,7 @@ typedef struct amf_sess_s {
     struct {
         ogs_pkbuf_t *pdu_session_resource_setup_request;
         ogs_pkbuf_t *path_switch_request_ack;
+        ogs_pkbuf_t *pdu_session_resource_release_command;
     } transfer;
 #define AMF_SESS_STORE_N2_TRANSFER(__sESS, __n2Type, __n2Buf) \
     do { \
