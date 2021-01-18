@@ -648,8 +648,9 @@ amf_sess_t *amf_sess_cycle(amf_sess_t *sess);
 int amf_sess_xact_count(amf_ue_t *amf_ue);
 int amf_sess_xact_state_count(amf_ue_t *amf_ue, int state);
 
-#define SESSION_TRANSFER_NEEDED(__aMF) (amf_sess_transfer_needed(__aMF) == true)
-bool amf_sess_transfer_needed(amf_ue_t *amf_ue);
+#define PDU_RES_SETUP_REQ_TRANSFER_NEEDED(__aMF) \
+    (amf_pdu_res_setup_req_transfer_needed(__aMF) == true)
+bool amf_pdu_res_setup_req_transfer_needed(amf_ue_t *amf_ue);
 
 int amf_find_served_tai(ogs_5gs_tai_t *tai);
 ogs_s_nssai_t *amf_find_s_nssai(

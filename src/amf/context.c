@@ -1606,7 +1606,7 @@ int amf_sess_xact_state_count(amf_ue_t *amf_ue, int state)
     return xact_count;
 }
 
-bool amf_sess_transfer_needed(amf_ue_t *amf_ue)
+bool amf_pdu_res_setup_req_transfer_needed(amf_ue_t *amf_ue)
 {
     amf_sess_t *sess = NULL;
 

@@ -89,7 +89,7 @@ void nas_5gs_send_registration_accept(amf_ue_t *amf_ue)
 
         ran_ue->initial_context_setup_request_sent = true;
     } else {
-        if (SESSION_TRANSFER_NEEDED(amf_ue)) {
+        if (PDU_RES_SETUP_REQ_TRANSFER_NEEDED(amf_ue)) {
             ngapbuf = ngap_ue_build_pdu_session_resource_setup_request(
                     amf_ue, gmmbuf);
             ogs_expect_or_return(ngapbuf);
@@ -149,7 +149,7 @@ void nas_5gs_send_service_accept(amf_ue_t *amf_ue)
 
         ran_ue->initial_context_setup_request_sent = true;
     } else {
-        if (SESSION_TRANSFER_NEEDED(amf_ue)) {
+        if (PDU_RES_SETUP_REQ_TRANSFER_NEEDED(amf_ue)) {
             ngapbuf = ngap_ue_build_pdu_session_resource_setup_request(
                     amf_ue, gmmbuf);
             ogs_expect_or_return(ngapbuf);
