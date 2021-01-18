@@ -39,6 +39,7 @@ typedef struct smf_n1_n2_message_transfer_param_s {
     ogs_pkbuf_t *n2smbuf;
 
     bool n1n2_failure_txf_notif_uri;
+    bool skip_ind;
 } smf_n1_n2_message_transfer_param_t;
 
 ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(

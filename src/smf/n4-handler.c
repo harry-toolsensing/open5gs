@@ -323,6 +323,7 @@ void smf_5gc_n4_handle_session_modification_response(
             ogs_assert(param.n2smbuf);
 
             param.n1n2_failure_txf_notif_uri = true;
+            param.skip_ind = true;
 
             smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
         } else {

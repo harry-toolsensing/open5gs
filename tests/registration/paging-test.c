@@ -2987,14 +2987,16 @@ abts_suite *test_paging(abts_suite *suite)
 {
     suite = ADD_SUITE(suite)
 
-    abts_run_test(suite, cm_idle_paging_func, NULL);
 #if 0
-    abts_run_test(suite, cm_idle_error_indication_func, NULL);
+    abts_run_test(suite, cm_idle_paging_func, NULL);
 #endif
+    abts_run_test(suite, cm_idle_error_indication_func, NULL);
+#if 0
     abts_run_test(suite, vonr_qos_flow_test1_func, NULL);
     abts_run_test(suite, vonr_session_test2_func, NULL);
     abts_run_test(suite, registration_ue_context_test4_func, NULL);
     abts_run_test(suite, registration_idle_test1_func, NULL);
+#endif
 
     return suite;
 }

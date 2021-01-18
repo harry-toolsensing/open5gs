@@ -138,6 +138,9 @@ ogs_sbi_request_t *smf_namf_comm_build_n1_n2_message_transfer(
         ogs_assert(N1N2MessageTransferReqData.n1n2_failure_txf_notif_uri);
     }
 
+    if (param->skip_ind == true)
+        N1N2MessageTransferReqData.skip_ind = 1;
+
     request = ogs_sbi_build_request(&message);
     ogs_assert(request);
 
